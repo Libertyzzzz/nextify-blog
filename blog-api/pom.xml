@@ -7,26 +7,12 @@
 
     <parent>
         <groupId>com.nextify</groupId>
-        <artifactId>blog</artifactId>
+        <artifactId>nextify-blog</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>blog-api</artifactId>
     <packaging>jar</packaging>
 
-    <dependencies>
-        <!-- OpenFeign for consumer services (but this module only defines interfaces/DTOs) -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
 
-        </dependency>
-
-        <!-- lombok for DTO -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
 </project>

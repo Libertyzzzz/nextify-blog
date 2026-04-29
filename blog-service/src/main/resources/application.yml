@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api # 所有的接口都以 /api 开头，方便前端统一代理
+
+spring:
+  application:
+    name: nextify-blog
+
+  # 数据库连接配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/nextify_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+  # Redis 配置 (用于存放 Token 和 访问统计)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: # 如果有密码请填写
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true # 开启下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，开发阶段建议开启
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.nextify.entity
+  global-config:
+    db-config:
+      id-type: auto # 对应数据库的主键自增策略
+
+# 自定义安全配置 (程序员的文艺感需要强大的安全基座)
+nextify:
+  jwt:
+    header: Authorization
+    secret: "NextifyBlogAppleStyleRomanticLogicSecretKey2025" # 请务必修改为一个复杂的随机字符串
+    expire: 604800 # 过期时间，单位秒 (此处设为 7 天)
