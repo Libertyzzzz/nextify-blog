@@ -39,7 +39,7 @@ mybatis-plus:
     map-underscore-to-camel-case: true # 开启下划线转驼峰
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，开发阶段建议开启
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.nextify.entity
+  type-aliases-package: com.nextify.blog.entity
   global-config:
     db-config:
       id-type: auto # 对应数据库的主键自增策略
@@ -50,3 +50,7 @@ nextify:
     header: Authorization
     secret: "NextifyBlogAppleStyleRomanticLogicSecretKey2025" # 请务必修改为一个复杂的随机字符串
     expire: 604800 # 过期时间，单位秒 (此处设为 7 天)
+  upload:
+    local-path: uploads/images
+    max-image-size: 5242880 # 5MB
+    public-base-url: http://localhost:8080/api
