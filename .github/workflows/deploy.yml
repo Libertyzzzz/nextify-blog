@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.SERVER_SSH_KEY }}
           # 核心：指向 blog-service 模块
-          # ....
+          # .......
           source: "blog-service/target/*.jar"
           target: "/home/dust/app/nextify-blog"
           # 核心：剥离 2 层目录，让 jar 包直接躺在 nextify-blog 文件夹里
