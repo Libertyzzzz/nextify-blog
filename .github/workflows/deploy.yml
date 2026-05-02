@@ -9,50 +9,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: 设置 JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          # 使用官方内置方式配置，不覆盖中央仓库
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
           cache: maven
 
-      # 针对 JDK 17 和 GitHub Packages 配置 Maven (如果你的项目依赖 GitHub 私有库)
-      - name: Configure Maven Settings
-        run: |
-          mkdir -p ~/.m2
-          echo "<settings><servers><server><id>github</id><username>${{ github.actor }}</username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>" > ~/.m2/settings.xml
-
-      # 在根目录执行构建，Maven 会自动处理 blog-service 模块
-      - name: Build with Maven
-        run: mvn clean package -DskipTests -U
+      - name: Maven 构建
+        # 直接运行 mvn，不再手动写 settings.xml
+        # -am 表示同时构建依赖的 api 模块
+        run: mvn clean package -DskipTests -U -am -e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 仅传输 blog-service 模块下的 JAR 文件到服务器
-      - name: Upload JAR to Server
+      - name: 上传 JAR 到服务器
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.SERVER_SSH_KEY }}
-          # 指向代码所在模块的打包目录
+          # 核心：指向 blog-service 模块
           source: "blog-service/target/*.jar"
-          # 服务器上的目标存放目录
           target: "/home/dust/app/nextify-blog"
-          # 关键：剥离路径中的 "blog-service/target/" (共2层)，使 JAR 直接放在目标目录下
+          # 核心：剥离 2 层目录，让 jar 包直接躺在 nextify-blog 文件夹里
           strip_components: 2
-# cd /home/dust/app/nextify-blog
-# 停止旧进程
-# fuser -k 8080/tcp || true
 
-# 启动新进程 (JDK 17 运行)
-# 针对 2G 内存维持 512M 限制
-# echo "Starting Nextify Blog with JDK 17..."
- # nohup java -Xms512m -Xmx512m -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
-
-# 等待并检查
-# sleep 5
-# ps -ef | grep java | grep nextify-blog
+      - name: SSH 远程重启
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/dust/app/nextify-blog
+            # 停止 8080 端口进程
+            fuser -k 8080/tcp || true
+            # 启动
+            echo "Starting Nextify Blog..."
+            nohup java -Xms512m -Xmx512m -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
+            sleep 5
+            ps -ef | grep java | grep nextify-blog
