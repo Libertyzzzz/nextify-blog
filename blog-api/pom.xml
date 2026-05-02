@@ -14,5 +14,14 @@
     <artifactId>blog-api</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <!-- Web 核心 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+    </dependencies>
+
 
 </project>
