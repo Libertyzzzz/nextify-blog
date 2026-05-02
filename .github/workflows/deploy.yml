@@ -51,7 +51,7 @@ jobs:
 # 启动新进程 (JDK 17 运行)
 # 针对 2G 内存维持 512M 限制
 # echo "Starting Nextify Blog with JDK 17..."
-nohup java -Xms512m -Xmx512m -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
+ # nohup java -Xms512m -Xmx512m -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
 
 # 等待并检查
 # sleep 5
