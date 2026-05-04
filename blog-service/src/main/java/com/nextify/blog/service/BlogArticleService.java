@@ -6,6 +6,7 @@ import com.nextify.blog.dto.ArticlePublishRequest;
 import com.nextify.blog.entity.BlogArticle;
 import com.nextify.blog.vo.ArticleDetailVO;
 import com.nextify.blog.vo.ArticleListItemVO;
+import com.nextify.blog.vo.ArticleTagDetailVO;
 
 public interface BlogArticleService extends IService<BlogArticle> {
 
@@ -18,4 +19,6 @@ public interface BlogArticleService extends IService<BlogArticle> {
     Long updateArticle(Long id, ArticlePublishRequest request);
 
     void deleteArticle(Long id);
+
+    ArticleTagDetailVO getArticleTagDetail(Long id);
 }

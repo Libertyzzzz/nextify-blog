@@ -14,8 +14,12 @@ import com.nextify.blog.mapper.BlogArticleTagMapper;
 import com.nextify.blog.mapper.BlogCategoryMapper;
 import com.nextify.blog.mapper.BlogTagMapper;
 import com.nextify.blog.service.BlogArticleService;
+import com.nextify.blog.service.BlogTagService;
 import com.nextify.blog.vo.ArticleDetailVO;
 import com.nextify.blog.vo.ArticleListItemVO;
+import com.nextify.blog.vo.ArticleTagDetailVO;
+import com.nextify.blog.vo.BlogTagVo;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,8 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     private BlogCategoryMapper categoryMapper;
     @Autowired
     private BlogTagMapper tagMapper;
+    @Resource
+    private BlogTagService tagService;
 
     @Override
     public Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize) {
@@ -153,6 +159,21 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
         article.setStatus(-1);
         this.updateById(article);
         articleTagMapper.delete(new QueryWrapper<BlogArticleTag>().eq("article_id", id));
+    }
+
+    @Override
+    public ArticleTagDetailVO getArticleTagDetail(Long id) {
+        // 查询该文章下对因的标签ID
+        LambdaQueryWrapper<BlogArticleTag> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogArticleTag::getArticleId, id);
+        List<BlogArticleTag> blogArticleTags = articleTagMapper.selectList(wrapper);
+        List<Long> ids = blogArticleTags.stream().map(BlogArticleTag::getTagId).toList();
+
+        // 根据ID列表查询标签信息
+        ArticleTagDetailVO res = new ArticleTagDetailVO();
+        res.setArticleId(id);
+        res.setTagIds(tagService.getTagInfos(ids));
+        return res;
     }
 
     private Map<Long, String> buildCategoryMap(List<BlogArticle> articles) {

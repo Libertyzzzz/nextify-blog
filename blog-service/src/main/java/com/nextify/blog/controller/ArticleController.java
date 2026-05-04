@@ -6,13 +6,15 @@ import com.nextify.blog.dto.ArticlePublishRequest;
 import com.nextify.blog.service.BlogArticleService;
 import com.nextify.blog.vo.ArticleDetailVO;
 import com.nextify.blog.vo.ArticleListItemVO;
+import com.nextify.blog.vo.ArticleTagDetailVO;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping
-public class BlogController {
+public class ArticleController {
 
     @Autowired
     private BlogArticleService articleService;
@@ -42,5 +44,11 @@ public class BlogController {
     public Result<Void> delete(@PathVariable Long id) {
         articleService.deleteArticle(id);
         return Result.success();
+    }
+
+
+    @GetMapping("/articles/tags/{id}")
+    public Result<ArticleTagDetailVO> getArticleTags(@PathVariable  Long id) {
+        return Result.success(articleService.getArticleTagDetail(id));
     }
 }
