@@ -76,7 +76,7 @@ public class JwtUtils {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         // --- 在这里输入你想要的明文密码 ---
-        String rawPassword = "cyril.xu.work@gmail.com";
+        String rawPassword = "ylq123456";
 
         // 执行加密
         String encodedPassword = encoder.encode(rawPassword);

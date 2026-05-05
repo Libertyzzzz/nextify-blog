@@ -53,4 +53,4 @@ nextify:
   upload:
     local-path: uploads/images
     max-image-size: 5242880 # 5MB
-    public-base-url: http://localhost:8080/api
+    public-base-url: /api
