@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/articles/**").permitAll()
                         .requestMatchers("/tags/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/v2/**").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated()
                 );
