@@ -57,39 +57,65 @@ public enum FemaleAssessmentEnum {
     }
 
     public static FemaleAssessmentEnum getResult(double score, int aesthetic, double bmi, int stub, long income) {
-        if (score >= 90) {
-            if (stub > 8) return F03;
-            if (aesthetic >= 4) return F01;
-            return F04;
+        // 1. 极端生存属性判定 (优先级最高，一票否决)
+        if (bmi > 28) return F30; // 视觉灾难
+        if (income > 1000000 && stub > 8) return F03; // 硬核女霸总：极高收入+极高任性
+
+        // 2. S级群组 (Score > 85): 顶级稀缺资产
+        if (score >= 85) {
+            if (aesthetic >= 8) return F01;      // 审美顶尖 -> 黑月亮
+            if (stub <= 4) return F04;           // 性格极好 -> 有效绿茶(褒义)
+            if (stub > 8) return F05;            // 难搞 -> 高维护费女神
+            return F29;                          // 逻辑派 -> 人间清醒
         }
-        if (score >= 75) {
-            if (bmi < 19) return F06;
-            if (aesthetic >= 4) return F22;
-            if (stub > 8) return F05;
-            if (income > 300000) return F03; // 高资产修正
+
+        // 3. A级群组 (70-84): 优质流通资产
+        if (score >= 70) {
+            if (aesthetic >= 7) return F02;      // 氛围感玩家
+            if (bmi >= 19 && bmi <= 22) return F06; // 健康美 -> 田园小清新
+            if (stub > 7) return F08;            // 毒舌才女 -> 知识分子
+            if (income > 500000) return F03;     // 经济独立 -> 女霸总(轻量版)
             return F29;
         }
-        if (score >= 60) {
-            if (aesthetic >= 4) return F02;
-            if (stub > 8) return F12;
-            if (bmi > 24) return F15;
-            return F08;
+
+        // 4. 维度特质分流 (核心优化：不看分数，看你哪项最突出)
+
+        // --- 审美/虚荣维度 ---
+        if (aesthetic >= 7) {
+            if (score > 50) return F07;          // 朋友圈雕琢者
+            if (bmi < 20) return F28;            // 健身媛
+            return F22;                          // 打卡机器
         }
+
+        // --- 性格/情绪维度 ---
+        if (stub >= 8) {
+            if (score > 55) return F12;          // 猫系小作精
+            if (score > 40) return F13;          // 野生艺术家
+            return F19;                          // 深夜emo患者
+        }
+
+        // --- 经济/生存维度 ---
+        if (income < 120000) { // 深圳标准下的低收入敏感
+            if (stub > 7) return F19;            // 穷且emo
+            return F17;                          // 自愈系打工人
+        }
+
+        // --- 认知/行为维度 ---
+        if (stub < 4) {
+            if (score < 50) return F09;          // 恋爱脑战神
+            return F11;                          // 乖乖女插件
+        }
+
+        // 5. 剩余样本的中位散列 (45-69)
         if (score >= 45) {
-            if (stub > 8) return F19;
-            if (aesthetic >= 4) return F07;
-            if (bmi > 25) return F16;
-            return F09;
+            if (bmi > 24) return F15;            // 退役女神
+            if (aesthetic < 4) return F18;       // 精致土
+            return F14;                          // 平平无奇
         }
-        if (score >= 30) {
-            if (bmi > 26) return F30;
-            if (stub > 8) return F13;
-            if (aesthetic > 4) return F28;
-            return F14;
-        }
-        // 低分段均匀散列 F10, F11, F17, F18, F20-F27
-        int hash = (int) score % 12;
-        FemaleAssessmentEnum[] values = {F10, F11, F17, F18, F20, F21, F23, F24, F25, F26, F27, F17};
-        return values[hash];
+
+        // 6. 底部兜底与奇葩分类
+        int hash = (int) (score + stub + aesthetic) % 8;
+        FemaleAssessmentEnum[] chaoticValues = {F10, F16, F20, F21, F23, F24, F25, F26};
+        return chaoticValues[hash];
     }
 }

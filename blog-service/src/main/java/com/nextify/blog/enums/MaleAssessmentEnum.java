@@ -11,7 +11,7 @@ public enum MaleAssessmentEnum {
     M05("高产程序员", "钱多话少逻辑死。你像个稳定的服务器，虽然永不宕机，但也毫无情趣可言。", 65),
     M06("精致负债人", "审美极高，穿搭极帅，余额极惨。你是典型的“社交奢侈品”，只能租借，不能持有。", 55),
     M07("妈宝避风港", "硬件还行，但你的独立决策权仅限中午吃什么。建议带你妈一起去约会，效率更高。", 50),
-    M08("硬核扶弟魔", "赚钱能力不错，但你是个漏水的容器。资产会被家族结构瞬间稀释，建议单修。", 55),
+    M08("无敌血包", "赚钱能力不错，但你是个漏水的容器。资产会被家族结构瞬间稀释，建议单修。", 55),
     M09("过气校草", "曾经颜值巅峰，现在发量报警。你的估值正在随发际线一起崩盘，建议止损。", 60),
     M10("气氛组组长", "会接梗、会拍照、没存款。你是完美的“短期租赁项目”，持有的风险是吃不饱饭。", 50),
     M11("冷暴力专家", "心理架构极其闭塞。冲突时你比离线的路由器还难找，售后维护成本极大。", 45),
@@ -56,38 +56,82 @@ public enum MaleAssessmentEnum {
     }
 
     public static MaleAssessmentEnum getResult(double score, int stub, long income, int aesthetic) {
-        if (score >= 90) {
-            if (stub > 7) return M02;
-            if (aesthetic >= 4) return M01;
-            return M03;
+        // 1. 极端特质判定 (优先级最高：这些特质会直接定义一个人)
+
+        // 顶级资产 vs 顶级风险
+        if (income >= 1500000 && score >= 85) return M01; // 顶级印钞机
+        if (income >= 800000 && stub > 8) return M02;    // 傲慢杠杆男 (有钱但极度难搞)
+
+        // 性格缺陷类
+        if (stub > 8) {
+            if (income < 150000) return M21; // 低配版霸总 (没钱还爱命令)
+            if (score < 50) return M25;      // 爹系男友预备役 (习惯性教人做事)
+            if (score >= 60) return M11;     // 冷暴力专家 (心理闭塞)
         }
+
+        // 视觉/审美欺诈类
+        if (aesthetic >= 8) {
+            if (income < 100000) return M06; // 精致负债人 (穷帅典范)
+            if (score < 50) return M24;      // 视觉欺诈师 (豪车方向盘是借的)
+            if (score < 60) return M10;      // 气氛组组长 (只适合短期收割)
+        }
+
+        // 2. S级/A级群组 (Score >= 75): 优质或潜力资产
         if (score >= 75) {
-            if (income > 500000) return M02;
-            if (aesthetic >= 4) return M03;
-            if (stub > 8) return M21;
-            return M05;
+            if (income > 400000 && aesthetic >= 6) return M03; // 绩优原始股
+            if (stub <= 4) return M05;                         // 高产程序员 (稳重、低调、话少)
+            return M08;                                        // 无敌血包 (赚钱但被家族稀释)
         }
+
+        // 3. 维度特征分流 (核心优化：根据特质决定标签)
+
+        // --- 妈宝/独立性维度 ---
+        // (假设我们在 DTO 中有相关参数，这里用 hash 或 stub 模拟判定)
+        if (stub < 3 && score < 60) {
+            if (income > 200000) return M07; // 妈宝避风港 (有钱但没主见)
+            return M27;                      // 妈宝男2.0
+        }
+
+        // --- 审美与生活方式 ---
+        if (aesthetic < 3) {
+            if (score > 50) return M05;      // 典型程序员 (无审美但有产出)
+            if (score < 40) return M18;      // 油腻中年预备役
+            return M19;                      // 二次元死宅
+        }
+
+        // --- 情感定位 ---
+        if (stub <= 4 && income < 120000) {
+            if (aesthetic >= 6) return M15;  // 备胎专业户 (温柔没钱)
+            return M26;                      // 沉没成本收割机 (精于计算)
+        }
+
+        // --- 特殊爱好触发 (基于随机因子与中低分)
+        if (score < 50) {
+            int hobbyTrigger = (int) (score + aesthetic) % 5;
+            if (hobbyTrigger == 0) return M22; // 资深钓鱼佬
+            if (hobbyTrigger == 1) return M13; // 无效健身男
+            if (hobbyTrigger == 2) return M28; // 夜店打火机
+        }
+
+        // 4. 稳健性分类 (45-74)
         if (score >= 60) {
-            if (aesthetic >= 4 && income < 100000) return M06;
-            if (stub > 8) return M25;
-            if (income > 200000) return M08;
-            return M09;
+            if (aesthetic >= 6) return M09;  // 过气校草 (颜值在崩盘)
+            if (income > 250000) return M05; // 稳健程序员
+            return M23;                      // 无效社交达人
         }
+
         if (score >= 45) {
-            if (stub > 8) return M11;
-            if (aesthetic >= 4) return M24;
-            if (income < 50000) return M15;
-            return M14;
+            if (stub > 7) return M29;        // 怀才不遇型 (负能量)
+            if (aesthetic > 5) return M04;   // 金融伪装者 (注水严重)
+            return M14;                      // 普通且自信
         }
-        if (score >= 30) {
-            if (stub > 7) return M12;
-            if (aesthetic > 3) return M10;
-            if (income < 30000) return M16;
-            return M17;
-        }
-        // 低分段均匀散列 M18-M30
-        int hash = (int)score % 13;
-        MaleAssessmentEnum[] values = {M18, M19, M20, M22, M23, M26, M27, M28, M29, M30, M22, M23, M27};
-        return values[hash];
+
+        // 5. 底部清算 (兜底)
+        if (score < 30) return M30;          // 资产重组对象 (熔断)
+
+        // 剩余散列
+        int finalHash = (int) (score) % 5;
+        MaleAssessmentEnum[] lowValues = {M16, M17, M20, M14, M18};
+        return lowValues[finalHash];
     }
 }

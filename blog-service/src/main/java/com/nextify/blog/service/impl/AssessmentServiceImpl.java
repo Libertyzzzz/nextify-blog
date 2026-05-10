@@ -87,45 +87,65 @@ public class AssessmentServiceImpl implements AssessmentService {
                 .build();
     }
 
+
     private BaseMatrix calculateBaseMatrix(AssessmentRequestDTO dto) {
         BaseMatrix m = new BaseMatrix();
 
-        // 1. 生存资源 (Assets) - 6个变量
-        m.assets = (Math.log10(dto.getAnnualIncome() / 100.0 / 10000.0 + 1) / Math.log10(101) * 55)
-                + (dto.getHouseStatus() * 15) + (dto.getCarLevel() * 10)
-                + (dto.getWorkStability() * 5) + (dto.getParentPension() * 5)
-                + (dto.getFamilyStructure() == 1 ? 10 : 5);
+        // --- 1. 生存资源 (Assets) - 调整基数，引入对数压缩 ---
+        double rawAssets = (Math.log10(dto.getAnnualIncome() / 100.0 / 10000.0 + 1) / Math.log10(101) * 60) // 提高收入权重
+                + (dto.getHouseStatus() * 12)
+                + (dto.getCarLevel() * 8)
+                + (dto.getWorkStability() * 4)
+                + (dto.getParentPension() * 4)
+                + (dto.getFamilyStructure() == 1 ? 6 : 3);
+        m.assets = softenScore(rawAssets, 140); // 140是预估的优秀值，超过它会极难增长
 
-        // 2. 生物属性 (Biological) - 6个变量
+        // --- 2. 生物属性 (Biological) - 核心是BMI和身高 ---
         double bmi = dto.getWeight() / Math.pow(dto.getHeight() / 100.0, 2);
-        m.biological = (dto.getHeight() - 150) * 1.5
-                + (Math.max(0, 100 - Math.abs(bmi - 21) * 8))
-                + (dto.getHairStatus() * 10) + (dto.getEyeStatus() * 5)
-                - (dto.getGeneticRisk() ? 20 : 0);
+        double bmiScore = Math.max(0, 100 - Math.abs(bmi - 21.5) * 12); // BMI更加严苛
+        double heightScore = (dto.getGender().equals("MALE") ? (dto.getHeight() - 160) : (dto.getHeight() - 150)) * 2;
 
-        // 3. 审美溢价 (Aesthetic) - 5个变量
-        m.aesthetic = (dto.getAestheticStyle() * 10) + (dto.getPhotoSkill() * 8)
-                + (dto.getFashionInvestment() * 10) + (dto.getTravelPlanning() * 5)
-                + (dto.getSocialFilters() * 3);
+        double rawBio = (bmiScore * 0.5) + (heightScore * 0.3) + (dto.getHairStatus() * 8) + (dto.getEyeStatus() * 4);
+        m.biological = softenScore(rawBio, 120);
 
-        // 4. 情绪带宽 (Emotional) - 5个变量
-        m.emotional = (dto.getEmpathyLevel() * 10) + (dto.getEmotionalStability() * 12)
-                + (dto.getSharingDesire() * 8) + (dto.getPetType() * 5)
-                + (dto.getRelationshipGoal() == 1 ? 10 : 5);
+        // --- 3. 审美溢价 (Aesthetic) ---
+        double rawAes = (dto.getAestheticStyle() * 8) + (dto.getPhotoSkill() * 6)
+                + (dto.getFashionInvestment() * 6) + (dto.getTravelPlanning() * 4)
+                + (dto.getSocialFilters() * 2);
+        m.aesthetic = (rawAes / 120.0) * 100; // 线性缩放到100以内
 
-        // 5. 社交博弈 (Social) - 5个变量
-        m.social = (dto.getTalkBreadth() * 12) + (dto.getExtraSkills() * 8)
-                + (dto.getCookingSkill() * 6) + (dto.getHouseworkLevel() * 6)
+        // --- 4. 情绪带宽 (Emotional) ---
+        double rawEmo = (dto.getEmpathyLevel() * 8) + (dto.getEmotionalStability() * 10)
+                + (dto.getSharingDesire() * 6) + (dto.getPetType() * 4)
+                + (dto.getRelationshipGoal() == 1 ? 8 : 4);
+        m.emotional = (rawEmo / 130.0) * 100;
+
+        // --- 5. 社交博弈 (Social) ---
+        double rawSoc = (dto.getTalkBreadth() * 10) + (dto.getExtraSkills() * 6)
+                + (dto.getCookingSkill() * 5) + (dto.getHouseworkLevel() * 5)
                 + (20 - dto.getReplyLatency() * 4);
+        m.social = (rawSoc / 120.0) * 100;
 
-        // 6. 维护成本 (Maintenance) - 5个变量 (分高 = 维护成本低)
-        m.maintenance = (10 - dto.getStubbornness()) * 4
-                + (5 - dto.getExBonding()) * 8
-                + (5 - dto.getColdViolenceProb()) * 8
+        // --- 6. 维护成本 (Maintenance) ---
+        double rawMain = (10 - dto.getStubbornness()) * 4
+                + (5 - dto.getExBonding()) * 6
+                + (5 - dto.getColdViolenceProb() * 1.5) * 6
                 + (10 - dto.getControlDesire() * 2)
-                + (dto.getConsumptionView() == 2 ? 10 : 5); // 消费观匹配
+                + (dto.getConsumptionView() == 2 ? 8 : 4);
+        m.maintenance = (rawMain / 100.0) * 100;
 
         return m;
+    }
+
+    /**
+     * 软性封顶函数：平滑高分段
+     * 逻辑：如果原始分超过 80，后续的增长将变得缓慢
+     */
+    private double softenScore(double raw, double targetMax) {
+        double normalized = (raw / targetMax) * 100;
+        if (normalized <= 85) return normalized;
+        // 超过85分后，每增加10分，实际只反映为2分，极难达到100
+        return 85 + (normalized - 85) * 0.2;
     }
 
     private double calculateLieFactor(AssessmentRequestDTO dto) {
