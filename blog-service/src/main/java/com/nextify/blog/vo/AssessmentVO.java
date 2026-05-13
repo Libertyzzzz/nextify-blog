@@ -9,9 +9,11 @@ import java.util.Map;
 @Builder
 public class AssessmentVO {
     private Integer score;            // 最终脱水得分
-    private Double lieFactor;         // 说谎因子 (0.0-1.0)
+    private Float lieFactor;         // 说谎因子 (0.0-1.0)
     private String marketLevel;       // 市场分段标签
-    private String report;           // 毒舌点评报告
+    private String report;      // 毒舌点评报告
+    private String shareId;
+    private String gender;
 
     // 雷达图数据结构
     private RadarData radar;

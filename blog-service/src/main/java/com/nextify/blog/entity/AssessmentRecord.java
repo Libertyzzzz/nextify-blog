@@ -15,15 +15,15 @@ public class AssessmentRecord {
     private String gender;
     private Integer score;
     private String marketLevel;
+    private Float lieFactor;
 
     @TableField(value = "report")
     private String report;
 
-    @TableField(value = "radar")
+    @TableField(value = "radar_data")
     private String radarData;  // 六维雷达数据
 
-    @TableField(value = "text")
-    private  String text; // 32个输入变量
+
 
     @TableField(value = "raw_input")
     private String rawInput; // 原始输入数据

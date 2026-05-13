@@ -1,16 +1,34 @@
 package com.nextify.blog.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nextify.blog.dto.AssessmentRequestDTO;
+import com.nextify.blog.entity.AssessmentRecord;
 import com.nextify.blog.enums.FemaleAssessmentEnum;
 import com.nextify.blog.enums.MaleAssessmentEnum;
+import com.nextify.blog.mapper.AssessmentRecordMapper;
 import com.nextify.blog.service.AssessmentService;
 import com.nextify.blog.vo.AssessmentVO;
+import io.netty.util.internal.ObjectUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @Slf4j
-public class AssessmentServiceImpl implements AssessmentService {
+public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, AssessmentRecord> implements AssessmentService {
+
+    private static final String SEED = "23456789abcdefghjkmnpqrstuvwxyz";
+    private final static ObjectMapper objectMapper = new ObjectMapper();
+
+    @Resource
+    private AssessmentRecordMapper assessmentMapper;
 
     @Override
     public AssessmentVO evaluate(AssessmentRequestDTO dto, String gender) {
@@ -20,7 +38,7 @@ public class AssessmentServiceImpl implements AssessmentService {
         BaseMatrix matrix = calculateBaseMatrix(dto);
 
         // 2. 计算说谎因子 (0.0 - 0.85)
-        double lie = calculateLieFactor(dto);
+        float lie = calculateLieFactor(dto);
 
         double finalScore;
         String marketLabel;
@@ -70,12 +88,21 @@ public class AssessmentServiceImpl implements AssessmentService {
             reportContent = res.getContent();
         }
 
-        // 4. 封装 VO 结果
-        return AssessmentVO.builder()
+        // 生成shareId
+        String shareId = NanoIdUtils.randomNanoId(
+                NanoIdUtils.DEFAULT_NUMBER_GENERATOR,
+                SEED.toCharArray(),
+                8
+
+        );
+        // 5. 封装 VO 结果
+        AssessmentVO res = AssessmentVO.builder()
                 .score((int) Math.round(finalScore))
+                .gender(gender)
                 .marketLevel(marketLabel)
                 .report(reportContent)
                 .lieFactor(lie)
+                .shareId(shareId)
                 .radar(new AssessmentVO.RadarData(
                         (int) Math.min(100, matrix.assets),
                         (int) Math.min(100, matrix.biological),
@@ -85,7 +112,50 @@ public class AssessmentServiceImpl implements AssessmentService {
                         (int) Math.min(100, matrix.maintenance)
                 ))
                 .build();
+        // 5. 保存记录
+        saveRecord(res);
+
+        return res;
     }
+
+    @Override
+    public AssessmentVO findByShareId(String shareId) {
+        LambdaQueryWrapper<AssessmentRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AssessmentRecord::getShareId, shareId);
+        AssessmentRecord record = assessmentMapper.selectOne(queryWrapper);
+        if(ObjectUtils.isEmpty(record)){
+            log.info("该分享记录已经被抹除");
+            return null;
+        }
+
+
+        AssessmentVO.RadarData radarData = JSON.parseObject(record.getRadarData(), AssessmentVO.RadarData.class);
+        return AssessmentVO.builder()
+                .gender(record.getGender())
+                .score(record.getScore())
+                .lieFactor(record.getLieFactor())
+                .marketLevel(record.getMarketLevel())
+                .report(record.getReport())
+                .radar(radarData)
+                .build();
+    }
+
+    private void saveRecord(AssessmentVO assessment) {
+        AssessmentRecord record = new AssessmentRecord();
+        record.setShareId(assessment.getShareId());
+        record.setScore(assessment.getScore());
+        record.setGender(assessment.getGender());
+        record.setReport(assessment.getReport());
+        record.setRadarData(JSON.toJSONString(assessment.getRadar()));
+
+        record.setLieFactor(assessment.getLieFactor());
+        record.setMarketLevel(assessment.getMarketLevel());
+
+        assessmentMapper.insert(record);
+
+   }
+
+
 
 
     private BaseMatrix calculateBaseMatrix(AssessmentRequestDTO dto) {
@@ -148,14 +218,14 @@ public class AssessmentServiceImpl implements AssessmentService {
         return 85 + (normalized - 85) * 0.2;
     }
 
-    private double calculateLieFactor(AssessmentRequestDTO dto) {
-        double l = 0.0;
+    private float calculateLieFactor(AssessmentRequestDTO dto) {
+        float l = 0.0f;
         // 逻辑冲突判定
-        if (dto.getVisualHeight() - dto.getHeight() > 6) l += 0.3; // 身高注水严重
-        if (dto.getSocialFilters() > 4 && dto.getPhotoSkill() < 2) l += 0.2; // 审美与技术不符
-        if (dto.getAnnualIncome() > 0 && dto.getAnnualIncome() % 1000000 == 0) l += 0.1; // 收入过于整齐
-        if (dto.getFashionInvestment() > 40 && dto.getAnnualIncome() < 10000000) l += 0.15; // 精致穷校验
-        return Math.min(l, 0.85);
+        if (dto.getVisualHeight() - dto.getHeight() > 6) l += 0.3f;// 身高注水严重
+        if (dto.getSocialFilters() > 4 && dto.getPhotoSkill() < 2) l += 0.2f; // 审美与技术不符
+        if (dto.getAnnualIncome() > 0 && dto.getAnnualIncome() % 1000000 == 0) l += 0.1f; // 收入过于整齐
+        if (dto.getFashionInvestment() > 40 && dto.getAnnualIncome() < 10000000) l += 0.15f; // 精致穷校验
+        return Math.min(l, 0.85f);
     }
 
     private double applyChaos(double score) {
