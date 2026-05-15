@@ -10,6 +10,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/v2/assessment")
 @Slf4j
@@ -42,6 +44,27 @@ public class AssessmentController {
         if(ObjectUtils.isEmpty(res))
             return Result.fail("查询记录为空");
         return Result.success(res);
+    }
+
+    /**
+     * 微信内置分享接口：返回元内容数据(标题，描述，链接，缩略图)
+     *
+     */
+    @GetMapping("/share/{shareId}/wechat-meta")
+    public Result<Map<String, Object>> getWeChatMeteInfo(@PathVariable String shareId){
+
+        return Result.success();
+    }
+
+    /**
+     * 微信内置浏览器 签名：给微信内H5做JSSDK签名
+     * @param url
+     * @return
+     */
+    @GetMapping("/share/wechat/js-sdk-signature/{url}")
+    public Result<Map<String, Object>> weChatSignature(@PathVariable String url){
+
+        return Result.success();
     }
 
 
