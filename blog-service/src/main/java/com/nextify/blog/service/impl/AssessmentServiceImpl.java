@@ -113,7 +113,7 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
                 ))
                 .build();
         // 5. 保存记录
-        saveRecord(res);
+        saveRecord(res, dto);
 
         return res;
     }
@@ -140,14 +140,14 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
                 .build();
     }
 
-    private void saveRecord(AssessmentVO assessment) {
+    private void saveRecord(AssessmentVO assessment, AssessmentRequestDTO dto) {
         AssessmentRecord record = new AssessmentRecord();
         record.setShareId(assessment.getShareId());
         record.setScore(assessment.getScore());
         record.setGender(assessment.getGender());
         record.setReport(assessment.getReport());
         record.setRadarData(JSON.toJSONString(assessment.getRadar()));
-
+        record.setRawInput(JSON.toJSONString(dto));
         record.setLieFactor(assessment.getLieFactor());
         record.setMarketLevel(assessment.getMarketLevel());
 

@@ -47,6 +47,15 @@ public class JwtUtils {
                 .compact();
     }
 
+    public static String encrypt(String plainText){
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        return encoder.encode(plainText);
+    }
+
+    public static boolean verify(String plainText, String cipherText){
+        return new BCryptPasswordEncoder().matches(plainText, cipherText);
+    }
+
     /**
      * 解析 Token 里的 Claims (荷载)
      */
@@ -80,10 +89,11 @@ public class JwtUtils {
 
         // 执行加密
         String encodedPassword = encoder.encode(rawPassword);
-
+        String s = "nextify-wsx";
         System.out.println("========================================");
         System.out.println("明文密码: " + rawPassword);
         System.out.println("加密后(请复制到数据库): " + encodedPassword);
         System.out.println("========================================");
+        System.out.println("加密后(请复制到数据库): " + encoder.matches(s, "$2a$10$fcK43wBcpSylswltIXjGWeC47Kzhuc23TMt8eupT/GbOTvjuQDsR6"));
     }
 }

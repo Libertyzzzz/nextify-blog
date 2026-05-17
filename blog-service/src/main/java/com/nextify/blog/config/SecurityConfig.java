@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/tags/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/v2/**").permitAll()
+                        .requestMatchers("/access-code/**").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated()
                 );
