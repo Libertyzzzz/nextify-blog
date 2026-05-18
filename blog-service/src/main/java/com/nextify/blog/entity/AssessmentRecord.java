@@ -31,6 +31,6 @@ public class AssessmentRecord {
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @TableField(value = "expires_at")
+    @TableField(value = "expires_at", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime expiredTime;
 }
