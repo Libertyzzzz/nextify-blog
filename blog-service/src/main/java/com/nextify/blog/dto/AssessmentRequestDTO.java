@@ -6,6 +6,8 @@ import lombok.Data;
 public class AssessmentRequestDTO {
     // 1. 底层资产与生物属性 (12个)
     private String gender;
+    private String longitude;
+    private String latitude;
     private Integer height;           // 净身高
     private Integer visualHeight;     // 视觉身高
     private Double weight;            // 体重

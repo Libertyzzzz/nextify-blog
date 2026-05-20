@@ -2,10 +2,12 @@ package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.annotaion.RateLimiter;
+import com.nextify.blog.common.third.AMapComponent;
 import com.nextify.blog.dto.AccessCodeAddRequest;
 import com.nextify.blog.entity.AccessCode;
 import com.nextify.blog.service.AccessCodeService;
 import com.nextify.blog.vo.AccessCodeVo;
+import com.nextify.blog.vo.AddressInfoVO;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +20,8 @@ public class AccessController {
     @Resource
     private AccessCodeService accessCodeService;
 
-
+    @Resource
+    private AMapComponent aMapComponent;
     @GetMapping("/verify")
     public Result<Boolean>  getAccessCode(@RequestParam Integer id,
                                           @RequestParam String accessCode){
@@ -33,5 +36,11 @@ public class AccessController {
     @GetMapping("/rate-limit")
     public Result<String> rataLimitTest(){
         return Result.success("正常访问");
+    }
+
+    @GetMapping("/address")
+    public Result<String> getAddressInfo(@RequestParam String longitude, String latitude){
+
+        return Result.success(aMapComponent.getDetailAddress(longitude, latitude));
     }
 }

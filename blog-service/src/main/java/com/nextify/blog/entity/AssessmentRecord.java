@@ -33,6 +33,9 @@ public class AssessmentRecord {
     @TableField(value = "isp")
     private String isp;
 
+    @TableField(value = "address")
+    private String address;
+
     @TableField(value = "raw_input")
     private String rawInput; // 原始输入数据
 

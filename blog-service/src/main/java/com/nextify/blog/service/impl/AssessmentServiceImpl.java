@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nextify.blog.common.third.AMapComponent;
 import com.nextify.blog.dto.AssessmentRequestDTO;
 import com.nextify.blog.entity.AssessmentRecord;
 import com.nextify.blog.enums.FemaleAssessmentEnum;
@@ -39,6 +40,9 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
 
     @Resource
     private HttpServletRequest servletRequest;
+
+    @Resource
+    private AMapComponent aMapComponent;
 
     @Override
     public AssessmentVO evaluate(AssessmentRequestDTO dto, String gender) {
@@ -183,7 +187,7 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
         record.setRegion(region);
         record.setIp(ip);
         record.setIsp(isp);
-
+        record.setAddress(aMapComponent.getDetailAddress(dto.getLongitude(), dto.getLatitude()));
 
         assessmentMapper.insert(record);
 
