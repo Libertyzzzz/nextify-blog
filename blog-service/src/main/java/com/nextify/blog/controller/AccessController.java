@@ -1,6 +1,7 @@
 package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.RateLimiter;
 import com.nextify.blog.dto.AccessCodeAddRequest;
 import com.nextify.blog.entity.AccessCode;
 import com.nextify.blog.service.AccessCodeService;
@@ -28,5 +29,9 @@ public class AccessController {
     public Result<Integer> setAccessCode(@RequestBody AccessCodeAddRequest request){
         return Result.success(accessCodeService.save(request));
     }
-
+    @RateLimiter(time = 5, count = 1, message = "请勿重复点击")
+    @GetMapping("/rate-limit")
+    public Result<String> rataLimitTest(){
+        return Result.success("正常访问");
+    }
 }

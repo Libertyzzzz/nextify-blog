@@ -13,10 +13,14 @@ import com.nextify.blog.enums.FemaleAssessmentEnum;
 import com.nextify.blog.enums.MaleAssessmentEnum;
 import com.nextify.blog.mapper.AssessmentRecordMapper;
 import com.nextify.blog.service.AssessmentService;
+import com.nextify.blog.service.GeoLocationService;
+import com.nextify.blog.utils.IPUtils;
 import com.nextify.blog.vo.AssessmentVO;
 import io.netty.util.internal.ObjectUtil;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -29,6 +33,12 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
 
     @Resource
     private AssessmentRecordMapper assessmentMapper;
+
+    @Resource
+    private GeoLocationService geoLocationService;
+
+    @Resource
+    private HttpServletRequest servletRequest;
 
     @Override
     public AssessmentVO evaluate(AssessmentRequestDTO dto, String gender) {
@@ -139,8 +149,9 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
                 .radar(radarData)
                 .build();
     }
-
-    private void saveRecord(AssessmentVO assessment, AssessmentRequestDTO dto) {
+    // 异步保存
+    @Async
+    public void saveRecord(AssessmentVO assessment, AssessmentRequestDTO dto) {
         AssessmentRecord record = new AssessmentRecord();
         record.setShareId(assessment.getShareId());
         record.setScore(assessment.getScore());
@@ -150,6 +161,29 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
         record.setRawInput(JSON.toJSONString(dto));
         record.setLieFactor(assessment.getLieFactor());
         record.setMarketLevel(assessment.getMarketLevel());
+        // 解析IP地址
+        String ip = IPUtils.getRealIp(servletRequest);
+        log.info("ip=" + ip);
+        String region = geoLocationService.getRegionByIp(ip);
+        String isp = "unknown isp";
+        if(IPUtils.isIPv4(ip)) {
+            log.info("regionStr=" + region);
+
+            // 2. 优雅切分字符串
+            String[] parts = region.split("\\|");
+
+            String country = parts[0];
+            String province = parts[2];
+            String city = parts[3];
+            isp = parts[4];
+
+            region = "0".equals(province) ? country : province + " " + city;
+
+        }
+        record.setRegion(region);
+        record.setIp(ip);
+        record.setIsp(isp);
+
 
         assessmentMapper.insert(record);
 
