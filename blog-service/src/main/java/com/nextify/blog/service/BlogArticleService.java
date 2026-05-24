@@ -12,6 +12,15 @@ public interface BlogArticleService extends IService<BlogArticle> {
 
     Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize);
 
+    /**
+     * 搜索文章
+     * @param keyword 关键词
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 文章列表分页
+     */
+    Page<ArticleListItemVO> searchArticles(String keyword, long pageNum, long pageSize);
+
     ArticleDetailVO getArticleDetail(Long id);
 
     Long publishArticle(ArticlePublishRequest request);

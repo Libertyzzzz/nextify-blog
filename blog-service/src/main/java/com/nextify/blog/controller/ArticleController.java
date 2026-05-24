@@ -25,6 +25,17 @@ public class ArticleController {
         return Result.success(articleService.getHomeArticles(pageNum, pageSize));
     }
 
+    /**
+     * 搜索文章
+     * GET /articles/search
+     */
+    @GetMapping("/articles/search")
+    public Result<Page<ArticleListItemVO>> searchArticles(@RequestParam String keyword,
+                                                          @RequestParam(defaultValue = "1") long pageNum,
+                                                          @RequestParam(defaultValue = "10") long pageSize) {
+        return Result.success(articleService.searchArticles(keyword, pageNum, pageSize));
+    }
+
     @GetMapping("/articles/{id}")
     public Result<ArticleDetailVO> getDetail(@PathVariable Long id) {
         return Result.success(articleService.getArticleDetail(id));

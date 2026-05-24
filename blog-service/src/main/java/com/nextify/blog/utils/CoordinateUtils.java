@@ -59,7 +59,7 @@ public class CoordinateUtils {
     }
 
     public static void main(String[] args) {
-        double[] gcj02 = wgs84ToGcj02(113.950817, 2.584546);
+        double[] gcj02 = wgs84ToGcj02(113.950817, 22.584546);
         System.out.println(Arrays.toString(gcj02));
     }
 

@@ -76,6 +76,45 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     }
 
     @Override
+    public Page<ArticleListItemVO> searchArticles(String keyword, long pageNum, long pageSize) {
+        Page<BlogArticle> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<BlogArticle> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BlogArticle::getStatus, 1); // 只搜索已发布的文章
+        if (StringUtils.hasText(keyword)) {
+            // 使用 MySQL 全文检索语法。注意：{0} 会被安全地替换
+            // 这里使用了 boolean mode 以便更好地匹配短语
+            queryWrapper.and(wrapper -> wrapper.apply("MATCH(title, content) AGAINST({0} IN BOOLEAN MODE)", keyword));
+        }
+        queryWrapper.orderByDesc(BlogArticle::getIsTop)
+                .orderByDesc(BlogArticle::getCreateTime);
+
+        Page<BlogArticle> articlePage = this.page(page, queryWrapper);
+
+        Map<Long, String> categoryMap = buildCategoryMap(articlePage.getRecords());
+        Map<Long, List<String>> articleTags = buildArticleTagNameMap(articlePage.getRecords());
+        List<ArticleListItemVO> voList = articlePage.getRecords().stream().map(article -> {
+            ArticleListItemVO vo = new ArticleListItemVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setSubtitle(article.getSubtitle());
+            vo.setSummary(article.getSummary());
+            vo.setCoverImg(article.getCoverImg());
+            vo.setCardStyle(article.getCardStyle());
+            vo.setViewCount(article.getViewCount());
+            vo.setIsTop(article.getIsTop());
+            vo.setCreateTime(article.getCreateTime());
+            vo.setCategoryId(article.getCategoryId());
+            vo.setCategoryName(categoryMap.get(article.getCategoryId()));
+            vo.setTagNames(articleTags.getOrDefault(article.getId(), new ArrayList<>()));
+            return vo;
+        }).collect(Collectors.toList());
+
+        Page<ArticleListItemVO> result = new Page<>(pageNum, pageSize, articlePage.getTotal());
+        result.setRecords(voList);
+        return result;
+    }
+
+    @Override
     @Transactional
     public ArticleDetailVO getArticleDetail(Long id) {
         // 增加阅读量
