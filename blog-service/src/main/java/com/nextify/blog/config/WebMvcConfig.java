@@ -1,7 +1,10 @@
 package com.nextify.blog.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -20,4 +23,20 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + uploadPath + "/");
     }
+
+    /**
+     * 注册安全响应头过滤器
+     */
+    @Bean
+    public FilterRegistrationBean<SecurityHeaderFilter> securityHeaderFilter() {
+        FilterRegistrationBean<SecurityHeaderFilter> registration =
+                new FilterRegistrationBean<>();
+        registration.setFilter(new SecurityHeaderFilter());
+        registration.addUrlPatterns("/*");
+        registration.setOrder(1); // 优先级最高
+        return registration;
+    }
+
+
+
 }

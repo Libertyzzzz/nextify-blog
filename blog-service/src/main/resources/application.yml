@@ -10,9 +10,9 @@ spring:
   # 数据库连接配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/nextify_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
+    url: ${DB_URL:jdbc:mysql://localhost:3306/nextify_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
 
   # Redis 配置 (用于存放 Token 和 访问统计)
   data:
@@ -37,7 +37,7 @@ spring:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true # 开启下划线转驼峰
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，开发阶段建议开启
+    log-impl: ${MYBATIS_LOG_IMPL:org.apache.ibatis.logging.stdout.StdOutImpl} # 生产环境建议关闭
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.nextify.blog.entity
   global-config:
@@ -48,8 +48,8 @@ mybatis-plus:
 nextify:
   jwt:
     header: Authorization
-    secret: "NextifyBlogAppleStyleRomanticLogicSecretKey2025" # 请务必修改为一个复杂的随机字符串
-    expire: 604800 # 过期时间，单位秒 (此处设为 7 天)
+    secret: ${JWT_SECRET:NextifyBlogAppleStyleRomanticLogicSecretKey2025} # 生产环境必须通过环境变量设置
+    expire: ${JWT_EXPIRE:86400} # 过期时间，单位秒 (生产环境建议设置为15-30分钟)
   upload:
     local-path: uploads/images
     max-image-size: 5242880 # 5MB

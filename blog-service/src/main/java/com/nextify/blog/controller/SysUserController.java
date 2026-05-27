@@ -1,13 +1,12 @@
 package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.dto.SysUserSaveDto;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
+import com.nextify.blog.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户管理接口 - 内部测试
@@ -18,7 +17,8 @@ public class SysUserController {
 
     @Autowired
     private SysUserMapper sysUserMapper;
-
+    @Autowired
+    private SysUserService sysUserService;
     /**
      * 根据ID查询用户信息 (仅用于验证环境是否跑通)
      */
@@ -31,5 +31,10 @@ public class SysUserController {
         // 注意：生产环境应屏蔽密码，此处仅为演示
         user.setPassword("******");
         return Result.success(user);
+    }
+    @PostMapping("/save")
+    public Result<Boolean> saveUser(@RequestBody SysUserSaveDto request) {
+
+        return Result.success(sysUserService.saveUser(request));
     }
 }
