@@ -28,6 +28,11 @@ public class AccessController {
         return Result.success(accessCodeService.verify(id, accessCode));
     }
 
+    @GetMapping("/{id}")
+    public Result<AccessCodeVo> getAccessCode(@PathVariable Integer id){
+        return Result.success(accessCodeService.getAccessCodeVo(id));
+    }
+
     @PostMapping()
     public Result<Integer> setAccessCode(@RequestBody AccessCodeAddRequest request){
         return Result.success(accessCodeService.save(request));

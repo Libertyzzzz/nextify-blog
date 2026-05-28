@@ -26,6 +26,18 @@ public class AccessCodeServiceImpl extends ServiceImpl<AccessCodeMapper, AccessC
     }
 
     @Override
+    public AccessCodeVo getAccessCodeVo(Integer id) {
+
+        AccessCode curr = accessCodeMapper.selectById(id);
+        if(curr == null)
+            return null;
+        return AccessCodeVo.builder()
+            .id(curr.getId())
+            .status(curr.getStatus())
+            .build();
+    }
+
+    @Override
     public Integer save(AccessCodeAddRequest request) {
         AccessCode curr = new AccessCode();
         curr.setId(request.getId());

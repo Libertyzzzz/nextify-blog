@@ -13,6 +13,7 @@ public class AccessCodeVo {
 
     private Integer id;
     private String accessCode;
+    private Integer status;
     private String url;
     private String  desc;
     private String extras;

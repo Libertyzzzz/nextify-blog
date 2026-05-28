@@ -14,4 +14,6 @@ public interface AccessCodeService extends IService<AccessCode> {
     Boolean verify(Integer id, String accessCode);
 
     Integer save(AccessCodeAddRequest request);
+
+    AccessCodeVo getAccessCodeVo(Integer id);
 }

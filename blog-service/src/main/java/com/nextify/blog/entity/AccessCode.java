@@ -15,6 +15,9 @@ public class AccessCode {
     @TableField(value = "access_code")
     private String accessCode;
 
+    @TableField(value = "status")
+    private Integer status;
+
     @TableField(value = "url")
     private String url;
 
