@@ -28,6 +28,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             user.setMotto(request.getMotto());
         if(request.getAvatar() != null)
             user.setAvatar(request.getAvatar());
+        user.setLastLoginTime(request.getLastLoginTime());
         return saveOrUpdate(user);
 
     }

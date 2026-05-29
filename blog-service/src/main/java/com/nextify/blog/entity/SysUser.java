@@ -44,5 +44,6 @@ public class SysUser implements Serializable {
     private LocalDateTime updateTime;
 
     /** 最后登录时间 */
+    @TableField(value = "last_login_time")
     private LocalDateTime lastLoginTime;
 }
