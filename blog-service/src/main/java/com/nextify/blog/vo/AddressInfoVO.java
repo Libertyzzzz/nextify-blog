@@ -37,7 +37,7 @@ public class AddressInfoVO {
 
 
 
-    // 类名随你起（叫 AoiInfo 挺好），但外层引用它的变量名必须叫 aois
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class AoiInfo {
@@ -45,7 +45,7 @@ public class AddressInfoVO {
         private String distance;
     }
 
-    // 类名随你起（叫 PoiInfo 挺好），但外层引用它的变量名必须叫 pois
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PoiInfo {

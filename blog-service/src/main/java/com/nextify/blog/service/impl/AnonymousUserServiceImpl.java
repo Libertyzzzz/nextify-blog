@@ -67,6 +67,7 @@ public class AnonymousUserServiceImpl extends ServiceImpl<AnonymousUserMapper, A
         if (ua.contains("Edge")) return "Edge";
         if (ua.contains("Chrome")) return "Chrome";
         if (ua.contains("Firefox")) return "Firefox";
+        if(ua.contains("Safari")) return "Safari";
         return "Other";
     }
 
@@ -78,4 +79,35 @@ public class AnonymousUserServiceImpl extends ServiceImpl<AnonymousUserMapper, A
         if (ua.contains("iPhone")) return "iOS";
         return "Other";
     }
+
+    /**
+     * 解析主流手机品牌
+     */
+    private String parseDeviceBrand(String ua) {
+        if (ua == null || !ua.contains("Android") && !ua.contains("iPhone") && !ua.contains("iPad")) {
+            return "PC/Unknown";
+        }
+
+        String uaUpper = ua.toUpperCase();
+
+        // 1. 苹果
+        if (uaUpper.contains("IPHONE")) return "Apple (iPhone)";
+        if (uaUpper.contains("IPAD")) return "Apple (iPad)";
+
+        // 2. 华为 & 荣耀
+        if (uaUpper.contains("HUAWEI") || uaUpper.contains("HONOR")) return "Huawei/Honor";
+
+        // 3. 小米
+        if (uaUpper.contains("XIAOMI") || uaUpper.contains("MI ") || uaUpper.contains("REDMI") || uaUpper.contains("MIX ")) return "Xiaomi";
+
+        // 4. 三星
+        if (uaUpper.contains("SAMSUNG") || uaUpper.contains("SM-")) return "Samsung";
+
+        // 5. OPPO & vivo
+        if (uaUpper.contains("OPPO") || uaUpper.contains("PCLM00") || uaUpper.contains("PACM00")) return "OPPO";
+        if (uaUpper.contains("VIVO")) return "vivo";
+
+        return "Android Generic";
+    }
+
 }

@@ -14,6 +14,7 @@ public class AssessmentVO {
     private String report;      // 毒舌点评报告
     private String shareId;
     private String gender;
+    private Double beautyScore;
 
     // 雷达图数据结构
     private RadarData radar;

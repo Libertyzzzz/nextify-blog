@@ -12,7 +12,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/nextify_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:123456}
+    password: ${DB_PASSWORD:root}
 
   # Redis 配置 (用于存放 Token 和 访问统计)
   data:
@@ -54,3 +54,9 @@ nextify:
     local-path: uploads/images
     max-image-size: 5242880 # 5MB
     public-base-url: /api
+
+  # 颜值评估配置 (方案一：云端 AI)
+  ai-face:
+    baidu-app-id: ${BAIDU_AI_APP_ID:123520902}
+    baidu-api-key: ${BAIDU_AI_API_KEY:ORcfCO13bsmYauXi41mIYVRy}
+    baidu-secret-key: ${BAIDU_AI_SECRET_KEY:LB6OxA3150KNRZOjRnNGHy25PaWkIzbp}

@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nextify.blog.common.third.AMapComponent;
+import com.nextify.blog.common.third.BaiduComponent;
 import com.nextify.blog.dto.AssessmentRequestDTO;
 import com.nextify.blog.entity.AssessmentRecord;
 import com.nextify.blog.enums.FemaleAssessmentEnum;
@@ -17,13 +18,20 @@ import com.nextify.blog.service.AssessmentService;
 import com.nextify.blog.service.GeoLocationService;
 import com.nextify.blog.utils.IPUtils;
 import com.nextify.blog.vo.AssessmentVO;
+import com.nextify.blog.vo.FaceDetectVO;
 import io.netty.util.internal.ObjectUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
 
 @Service
 @Slf4j
@@ -43,6 +51,13 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
 
     @Resource
     private AMapComponent aMapComponent;
+
+    @Resource
+    private BaiduComponent baiduComponent;
+
+
+    @Value("${nextify.upload.local-path:uploads/images}")
+    private String uploadPath;
 
     @Override
     public AssessmentVO evaluate(AssessmentRequestDTO dto, String gender) {
@@ -133,10 +148,12 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
                 8
 
         );
+        double beautyScore = calculateBeautyScore(dto);
         // 5. 封装 VO 结果
         AssessmentVO res = AssessmentVO.builder()
                 .score((int) Math.round(finalScore))
                 .gender(gender)
+                .beautyScore(beautyScore)
                 .marketLevel(marketLabel)
                 .report(reportContent)
                 .lieFactor(lie)
@@ -212,10 +229,29 @@ public class AssessmentServiceImpl extends ServiceImpl<AssessmentRecordMapper, A
         record.setIp(ip);
         record.setIsp(isp);
         record.setAddress(aMapComponent.getDetailAddress(dto.getLongitude(), dto.getLatitude()));
-
+        record.setImageUrl(dto.getImageUrl());
+        record.setBeautyScore(assessment.getBeautyScore());
         assessmentMapper.insert(record);
 
    }
+
+   // 获取颜值评分
+    private double calculateBeautyScore(AssessmentRequestDTO req) {
+
+        try {
+            // 将图片转位字节数组
+            Path path = Paths.get(uploadPath, req.getImageUrl());
+
+            // 2. 直接从本地磁盘读取字节
+            byte[] imageBytes = Files.readAllBytes(path);
+
+            FaceDetectVO faceDetectVO = baiduComponent.detectFace(imageBytes);
+            return faceDetectVO != null ? faceDetectVO.getBeauty() : 0.0;
+        } catch (Exception e) {
+            log.error("读取本地图片失败: {}, 路径: {}", req.getImageUrl(), uploadPath, e);
+            return 0.0;
+        }
+    }
 
     /**
      * 非线性处理核心指标：年薪、身高

@@ -18,6 +18,8 @@ public class AssessmentRecord {
     private String marketLevel;
     private Float lieFactor;
 
+    private Double beautyScore;
+    private String imageUrl;
     @TableField(value = "report")
     private String report;
 
