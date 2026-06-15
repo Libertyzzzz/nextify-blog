@@ -1,4 +1,4 @@
-package com.nextify.blog.controller;
+package com.nextify.blog.controller.admin;
 
 import com.nextify.blog.common.Result;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,57 +56,14 @@ public class UploadController {
 
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<Map<String, String>> uploadImage(@RequestPart("file") MultipartFile file) throws IOException {
-        // 1. 文件非空验证
-        if (file == null || file.isEmpty()) {
-            return Result.fail("图片不能为空");
-        }
-        // 2. 文件大小验证
-        if (file.getSize() > maxImageSize) {
-            return Result.fail("图片大小超出限制");
-        }
-        // 3. 文件类型验证
         String contentType = file.getContentType();
-        if (!StringUtils.hasText(contentType) || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
-            return Result.fail("仅支持 jpg/jpeg/png/webp/gif");
-        }
-
-        // 4. 文件魔数验证（防止文件伪装）
-        byte[] fileBytes = file.getBytes();
-        String magicNumber = bytesToHex(fileBytes, 4);
-        boolean isValidMagicNumber = false;
-        for (String allowedMagic : ALLOWED_MAGIC_NUMBERS) {
-            if (magicNumber.toUpperCase().startsWith(allowedMagic)) {
-                isValidMagicNumber = true;
-                break;
-            }
-        }
-
-        if (!isValidMagicNumber) {
-            return Result.fail("文件类型验证失败，请上传真实的图片文件");
-        }
-
-        // 5. 使用ImageIO验证图片有效性（防止恶意文件）
-        try {
-            BufferedImage image = ImageIO.read(new ByteArrayInputStream(fileBytes));
-            if (image == null) {
-                return Result.fail("图片文件损坏或格式无效");
-            }
-            // 验证图片尺寸（防止超大图片DoS攻击）
-            if (image.getWidth() > 10000 || image.getHeight() > 10000) {
-                return Result.fail("图片尺寸过大");
-            }
-        } catch (IOException e) {
-            return Result.fail("图片文件验证失败");
-        }
-
-        // 6. 文件名生成
         String ext = getExtension(file.getOriginalFilename());
-        if (!StringUtils.hasText(ext)) {
+        if (!StringUtils.hasText(ext) && !StringUtils.hasText(contentType)) {
             ext = mimeToExtension(contentType);
         }
         String fileName = UUID.randomUUID().toString().replace("-", "") + "." + ext;
 
-        // 7. 文件保存到指定目录
+        // 文件保存到指定目录
         Path uploadDir = Paths.get(uploadLocalPath).toAbsolutePath().normalize();
         Files.createDirectories(uploadDir);
         // 安全检查
@@ -133,16 +90,7 @@ public class UploadController {
         return fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
     }
 
-    private String bytesToHex(byte[] bytes, int length) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < Math.min(length, bytes.length); i++) {
-            sb.append(String.format("%02X", bytes[i]));
-        }
 
-        List<int[]> res = new ArrayList<>();
-        res.toArray(new int[res.size()][]);
-        return sb.toString();
-    }
 
     private String mimeToExtension(String contentType) {
         return switch (contentType.toLowerCase()) {

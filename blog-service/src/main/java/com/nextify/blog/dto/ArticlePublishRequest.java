@@ -23,4 +23,5 @@ public class ArticlePublishRequest {
     @NotNull(message = "分类不能为空")
     private Long categoryId;
     private List<Long> tagIds;
+    private List<Long> imageIds; // 新增字段，用于接收文章中使用的图片ID
 }

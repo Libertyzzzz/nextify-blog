@@ -1,5 +1,6 @@
 package com.nextify.blog.config;
 
+import com.nextify.blog.interceptor.UploadInterceptor;
 import com.nextify.blog.interceptor.UserProfileInterceptor;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Resource
     private UserProfileInterceptor userProfileInterceptor;
 
+    @Resource
+    private UploadInterceptor uploadInterceptor;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path uploadPath = Paths.get(uploadLocalPath).toAbsolutePath().normalize();
@@ -31,7 +35,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 注册用户画像拦截器
+     * 注册用户画像拦截器 + 用户上传拦截器
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -42,6 +46,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 "/error",                // 错误页面
                 "/actuator/**"           // Spring Actuator（如果有）
             );
+        registry.addInterceptor(uploadInterceptor)
+            .addPathPatterns("/admin/upload/**");
+
+
     }
 
     /**

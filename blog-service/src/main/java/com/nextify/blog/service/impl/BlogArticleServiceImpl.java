@@ -15,6 +15,7 @@ import com.nextify.blog.mapper.BlogCategoryMapper;
 import com.nextify.blog.mapper.BlogTagMapper;
 import com.nextify.blog.service.BlogArticleService;
 import com.nextify.blog.service.BlogTagService;
+import com.nextify.blog.service.ImageService; // 导入 ImageService
 import com.nextify.blog.vo.ArticleDetailVO;
 import com.nextify.blog.vo.ArticleListItemVO;
 import com.nextify.blog.vo.ArticleTagDetailVO;
@@ -43,6 +44,8 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     private BlogTagMapper tagMapper;
     @Resource
     private BlogTagService tagService;
+    @Resource
+    private ImageService imageService;
 
     @Override
     public Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize) {
@@ -147,8 +150,10 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
         if (article.getIsTop() == null) {
             article.setIsTop(0);
         }
+        // 保存文章，ID自动回填
         this.save(article);
 
+        // 关联标签
         articleTagMapper.delete(new QueryWrapper<BlogArticleTag>().eq("article_id", article.getId()));
         if (request.getTagIds() != null) {
             for (Long tagId : request.getTagIds()) {
@@ -158,6 +163,12 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
                 articleTagMapper.insert(rel);
             }
         }
+
+        // 关联图片
+        if (request.getImageIds() != null && !request.getImageIds().isEmpty()) {
+            imageService.updateImageUsage(request.getImageIds(), article.getId());
+        }
+
         return article.getId();
     }
 
@@ -176,6 +187,7 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
         }
         this.updateById(article);
 
+        // 关联标签
         articleTagMapper.delete(new QueryWrapper<BlogArticleTag>().eq("article_id", id));
         if (request.getTagIds() != null) {
             for (Long tagId : request.getTagIds()) {
@@ -185,6 +197,12 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
                 articleTagMapper.insert(rel);
             }
         }
+
+        // 关联图片
+        if (request.getImageIds() != null && !request.getImageIds().isEmpty()) {
+            imageService.updateImageUsage(request.getImageIds(), id);
+        }
+
         return id;
     }
 

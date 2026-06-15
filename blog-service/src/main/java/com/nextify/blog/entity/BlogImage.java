@@ -40,11 +40,15 @@ public class BlogImage {
     @TableField("usage_id")
     private Long usageId;
 
+    /** 是否为临时图片（未与业务实体关联） */
+    @TableField("is_temporary")
+    private Boolean isTemporary;
+
     /** 创建时间 */
-    @TableField(value = "created_at", fill = FieldFill.INSERT)
-    private LocalDateTime createdAt;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
 
     /** 软删除时间 */
-    @TableField("deleted_at")
-    private LocalDateTime deletedAt;
+    @TableField("deleted_time")
+    private LocalDateTime deleteTime;
 }
