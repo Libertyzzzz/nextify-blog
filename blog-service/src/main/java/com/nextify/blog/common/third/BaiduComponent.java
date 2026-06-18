@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 百度云 AI 颜值分析实现
@@ -93,4 +90,24 @@ public class BaiduComponent {
         }
         return null;
     }
+
+//    /**
+//     * 主动推送 URL 到百度
+//     */
+//    public void pushUrl(String url) {
+//        pushUrls(Collections.singletonList(url));
+//    }
+//
+//    public void pushUrls(List<String> urls) {
+//        String target = String.format("http://data.zz.baidu.com/urls?site=%s&token=%s", site, token);
+//        try {
+//            // 百度要求 body 为 URL 换行符拼接的纯文本
+//            String body = String.join("\n", urls);
+//            String response = restTemplate.postForObject(target, body, String.class);
+//            log.info("百度链接推送结果: {}, 推送列表: {}", response, body);
+//        } catch (Exception e) {
+//            log.error("推送链接到百度失败", e);
+//        }
+//    }
+
 }

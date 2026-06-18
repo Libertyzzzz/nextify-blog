@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/v2/**").permitAll()
                         .requestMatchers("/access-code/**").permitAll()
+                        .requestMatchers("/comment/**").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated()
                 );
