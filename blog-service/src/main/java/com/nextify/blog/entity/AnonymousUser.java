@@ -25,6 +25,8 @@ public class AnonymousUser {
     private Integer visitCount;
 
     private String rawFingerprint;
+
+    private Boolean hasCommented;
     
     private LocalDateTime firstVisitTime;
     

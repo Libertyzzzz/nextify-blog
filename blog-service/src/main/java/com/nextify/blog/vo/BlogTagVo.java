@@ -8,4 +8,5 @@ import lombok.Setter;
 public class BlogTagVo {
     private String name;
     private String color;
+    private Long id;
 }

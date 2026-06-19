@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.nextify.blog.entity.BlogComment;
 import com.nextify.blog.enums.CommentStatusEnum;
 import com.nextify.blog.mapper.BlogCommentMapper;
+import com.nextify.blog.service.AnonymousUserService;
 import com.nextify.blog.service.BlogCommentService;
 import com.nextify.blog.utils.SensitiveWordFilter;
 import com.nextify.blog.vo.CommentVO;
@@ -13,12 +14,14 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +30,11 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
 
     @Resource
     private SensitiveWordFilter sensitiveWordFilter;
+
+    @Resource
+    private AnonymousUserService anonymousUserService;
     @Override
+    @Transactional
     public void postComment(BlogComment comment) {
         // 1. 处理头像逻辑
         if (!StringUtils.hasText(comment.getAvatarUrl())) {
@@ -38,9 +45,13 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         comment.setStatus(CommentStatusEnum.PUBLISHED.getCode());
         String originalContent = comment.getContent();
         if(sensitiveWordFilter.containsSensitiveWord(comment.getContent())){
-            log.warn("comments contains senstitive words: {}", originalContent);
+            log.warn("comments contains sensitive words: {}", originalContent);
             comment.setStatus(CommentStatusEnum.PENDING_REVIEW.getCode());
             comment.setContent(sensitiveWordFilter.replaceSensitiveWord(comment.getContent()));
+        }
+        // 如果是匿名用户 更新状态
+        if(StringUtils.hasText(comment.getAnonymousId())){
+            anonymousUserService.updateStatus(comment.getAnonymousId());
         }
         this.save(comment);
     }

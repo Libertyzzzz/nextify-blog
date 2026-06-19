@@ -5,7 +5,9 @@ import com.nextify.blog.common.Result;
 import com.nextify.blog.entity.AnonymousUser;
 import com.nextify.blog.mapper.AnonymousUserMapper;
 import com.nextify.blog.service.AnonymousUserService;
+import com.nextify.blog.utils.IPUtils;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,15 +21,11 @@ public class AnonymousUserController {
     @Resource
     private AnonymousUserService anonymousUserService;
 
-//    @GetMapping("/list")
-//    public Page<AnonymousUser> list(@RequestParam(defaultValue = "1") long current,
-//                                   @RequestParam(defaultValue = "10") long size) {
-//      return null;
-//    }
-//
-//    @PostMapping("/user")
-//    public Result<Void> saveUser() {
-//        anonymousUserService.saveAnonymousUser();
-//        return Result.success();
-//    }
+    @RequestMapping("/user")
+    public Result<AnonymousUser> getIdentify(HttpServletRequest request){
+        String ip = IPUtils.getRealIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        return Result.success(anonymousUserService.getIdentity(ip, userAgent));
+    }
+
 }

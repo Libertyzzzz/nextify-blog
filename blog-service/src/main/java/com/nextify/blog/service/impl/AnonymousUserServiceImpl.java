@@ -1,6 +1,7 @@
 package com.nextify.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.nextify.blog.entity.AnonymousUser;
 import com.nextify.blog.mapper.AnonymousUserMapper;
@@ -13,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -60,6 +65,42 @@ public class AnonymousUserServiceImpl extends ServiceImpl<AnonymousUserMapper, A
             user.setIpAddress(ip);
             anonymousUserMapper.updateById(user);
         }
+    }
+
+    @Override
+    public String findByFingerprint(String fingerprint) {
+         AnonymousUser user =  anonymousUserMapper.selectOne(new LambdaQueryWrapper<AnonymousUser>()
+            .eq(AnonymousUser::getFingerprint, fingerprint));
+
+         return user.getAnonymousId();
+    }
+
+    @Override
+    public AnonymousUser getIdentity(String ip, String userAgent) {
+        String rawFingerprint = ip + "|" + userAgent;
+        // log.info("设备指纹：{}", rawFingerprint);
+        String fingerprint = DigestUtils.md5DigestAsHex(rawFingerprint.getBytes());
+
+        // 2. 查找是否存在该匿名用户
+        AnonymousUser user = anonymousUserMapper.selectOne(
+            new LambdaQueryWrapper<AnonymousUser>()
+                .eq(AnonymousUser::getFingerprint, fingerprint)
+                .select(AnonymousUser::getAnonymousId, AnonymousUser::getHasCommented)
+        );
+
+        log.info("查询匿名身份");
+
+        if(user == null){
+            processAnonymousUser(ip, userAgent);
+        }
+
+        return user;
+
+    }
+
+    @Override
+    public Boolean updateStatus(String anonymousId) {
+        return this.update(new UpdateWrapper<AnonymousUser>().eq("anonymous_id", anonymousId).set("has_commented", true));
     }
 
     private String parseBrowser(String ua) {

@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/v2/**").permitAll()
                         .requestMatchers("/access-code/**").permitAll()
                         .requestMatchers("/comment/**").permitAll()
+                        .requestMatchers("/anonymous/**").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated()
                 );
