@@ -9,6 +9,7 @@ import com.nextify.blog.entity.BlogArticle;
 import com.nextify.blog.entity.BlogArticleTag;
 import com.nextify.blog.entity.BlogCategory;
 import com.nextify.blog.entity.BlogTag;
+import com.nextify.blog.enums.PublishStatusEnum;
 import com.nextify.blog.mapper.BlogArticleMapper;
 import com.nextify.blog.mapper.BlogArticleTagMapper;
 import com.nextify.blog.mapper.BlogCategoryMapper;
@@ -48,10 +49,10 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     private ImageService imageService;
 
     @Override
-    public Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize) {
+    public Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize, Integer status) {
         Page<BlogArticle> page = new Page<>(pageNum, pageSize);
         Page<BlogArticle> articlePage = this.page(page, new LambdaQueryWrapper<BlogArticle>()
-                .eq(BlogArticle::getStatus, 1)
+                .eq(BlogArticle::getStatus, null == status ? PublishStatusEnum.PUBLISHED.getCode() : status)
                 .orderByDesc(BlogArticle::getIsTop)
                 .orderByDesc(BlogArticle::getCreateTime));
         Map<Long, String> categoryMap = buildCategoryMap(articlePage.getRecords());
@@ -66,6 +67,7 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
             vo.setCardStyle(article.getCardStyle());
             vo.setViewCount(article.getViewCount());
             vo.setIsTop(article.getIsTop());
+            vo.setStatus(article.getStatus());
             vo.setCreateTime(article.getCreateTime());
             vo.setCategoryId(article.getCategoryId());
             vo.setCategoryName(categoryMap.get(article.getCategoryId()));
@@ -82,7 +84,7 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     public Page<ArticleListItemVO> searchArticles(String keyword, long pageNum, long pageSize) {
         Page<BlogArticle> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<BlogArticle> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(BlogArticle::getStatus, 1); // 只搜索已发布的文章
+        queryWrapper.eq(BlogArticle::getStatus, PublishStatusEnum.PUBLISHED.getCode()); // 只搜索已发布的文章
         if (StringUtils.hasText(keyword)) {
             // 使用 MySQL 全文检索语法。注意：{0} 会被安全地替换
             // 这里使用了 boolean mode 以便更好地匹配短语
@@ -119,12 +121,12 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
 
     @Override
     @Transactional
-    public ArticleDetailVO getArticleDetail(Long id) {
+    public ArticleDetailVO getArticleDetail(Long id, Integer status) {
         // 增加阅读量
         baseMapper.incrementViewCount(id);
         BlogArticle article = this.getOne(new LambdaQueryWrapper<BlogArticle>()
                 .eq(BlogArticle::getId, id)
-                .eq(BlogArticle::getStatus, 1));
+                .eq(BlogArticle::getStatus, null == status ? PublishStatusEnum.PUBLISHED.getCode() : status));
         if (article == null) {
             return null;
         }

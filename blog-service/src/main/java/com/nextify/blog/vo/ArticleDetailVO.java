@@ -18,6 +18,7 @@ public class ArticleDetailVO {
     private Integer cardStyle;
     private Integer viewCount;
     private Integer isTop;
+    private Integer status;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     private Long categoryId;

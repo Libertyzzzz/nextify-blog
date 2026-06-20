@@ -21,8 +21,9 @@ public class ArticleController {
 
     @GetMapping("/articles")
     public Result<Page<ArticleListItemVO>> getArticles(@RequestParam(defaultValue = "1") long pageNum,
-                                                        @RequestParam(defaultValue = "10") long pageSize) {
-        return Result.success(articleService.getHomeArticles(pageNum, pageSize));
+                                                        @RequestParam(defaultValue = "10") long pageSize,
+                                                        @RequestParam (defaultValue = "1", required = false) Integer status){
+        return Result.success(articleService.getHomeArticles(pageNum, pageSize, status));
     }
 
     /**
@@ -37,8 +38,9 @@ public class ArticleController {
     }
 
     @GetMapping("/articles/{id}")
-    public Result<ArticleDetailVO> getDetail(@PathVariable Long id) {
-        return Result.success(articleService.getArticleDetail(id));
+    public Result<ArticleDetailVO> getDetail(@PathVariable Long id,
+                                              @RequestParam(defaultValue = "1") Integer status ) {
+        return Result.success(articleService.getArticleDetail(id, status));
     }
 
     @PostMapping("/admin/articles")

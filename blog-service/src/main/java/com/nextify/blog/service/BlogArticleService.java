@@ -10,7 +10,7 @@ import com.nextify.blog.vo.ArticleTagDetailVO;
 
 public interface BlogArticleService extends IService<BlogArticle> {
 
-    Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize);
+    Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize, Integer status);
 
     /**
      * 搜索文章
@@ -21,7 +21,7 @@ public interface BlogArticleService extends IService<BlogArticle> {
      */
     Page<ArticleListItemVO> searchArticles(String keyword, long pageNum, long pageSize);
 
-    ArticleDetailVO getArticleDetail(Long id);
+    ArticleDetailVO getArticleDetail(Long id, Integer status);
 
     Long publishArticle(ArticlePublishRequest request);
 

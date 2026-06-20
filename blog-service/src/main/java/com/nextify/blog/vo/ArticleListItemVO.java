@@ -15,6 +15,7 @@ public class ArticleListItemVO {
     private Integer cardStyle;
     private Integer viewCount;
     private Integer isTop;
+    private Integer status;
     private LocalDateTime createTime;
     private Long categoryId;
     private String categoryName;
