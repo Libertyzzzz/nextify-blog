@@ -14,7 +14,7 @@ public enum ResultCode {
     // 默认失败
     ERROR(500, "系统繁忙，请稍后再试"),
 
-    // 认证相关 (Apple 风格的严谨性)
+    // 认证相关
     UNAUTHORIZED(401, "尚未登录或登录已过期"),
     FORBIDDEN(403, "权限不足，拒绝访问"),
 

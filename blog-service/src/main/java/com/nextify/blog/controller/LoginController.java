@@ -3,11 +3,13 @@ package com.nextify.blog.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.ResultCode;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
 import com.nextify.blog.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +31,7 @@ public class LoginController {
     @Autowired
     private SysUserMapper sysUserMapper;
 
+    @Lazy
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -39,6 +42,7 @@ public class LoginController {
      * 管理员登录
      * POST /api/auth/login
      */
+    @PublicApi
     @PostMapping("/login")
     public Result<?> login(@RequestBody Map<String, String> loginParams) {
         log.info("login controller entered....");

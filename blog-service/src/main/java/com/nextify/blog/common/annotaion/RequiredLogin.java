@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RuquiredLogin {
+public @interface RequiredLogin {
 
     /**
      * 登陆认证注解

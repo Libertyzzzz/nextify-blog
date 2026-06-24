@@ -1,6 +1,7 @@
 package com.nextify.blog.controller.admin;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.entity.BlogImage;
 import com.nextify.blog.service.ImageService;
 import com.nextify.blog.vo.ImageInfoVo;
@@ -24,6 +25,7 @@ public class ImageController {
      * @param usageType 使用类型
      * @param usageId 业务id
      */
+    @PublicApi
     @PostMapping("/image/with-reference")
     public Result<Map<String, String>> uploadWithReference(
         @RequestParam("file") MultipartFile file,

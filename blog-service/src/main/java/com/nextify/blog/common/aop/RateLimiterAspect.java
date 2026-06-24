@@ -1,4 +1,4 @@
-package com.nextify.blog.aop;
+package com.nextify.blog.common.aop;
 
 import com.nextify.blog.common.annotaion.RateLimiter;
 import com.nextify.blog.common.exception.BusinessException;
@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 

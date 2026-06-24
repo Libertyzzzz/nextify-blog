@@ -2,6 +2,7 @@ package com.nextify.blog.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.dto.BlogCategoryAddRequest;
 import com.nextify.blog.dto.BlogCategoryUpdateRequest;
 import com.nextify.blog.entity.BlogCategory;
@@ -23,6 +24,7 @@ public class BlogCategoryController {
      * 获取所有分类列表
      * GET /categories/all
      */
+    @PublicApi
     @GetMapping("/list")
     public Result<List<BlogCategory>> getAllCategories() {
         return Result.success(blogCategoryService.getAllCategories());
@@ -32,6 +34,7 @@ public class BlogCategoryController {
      * 分页获取分类列表
      * GET /categories
      */
+    @PublicApi
     @GetMapping
     public Result<Page<BlogCategory>> getCategoriesByPage(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -43,6 +46,7 @@ public class BlogCategoryController {
      * 根据ID获取分类详情
      * GET /categories/{id}
      */
+    @PublicApi
     @GetMapping("/{id}")
     public Result<BlogCategory> getCategoryById(@PathVariable Long id) {
         return Result.success(blogCategoryService.getById(id));

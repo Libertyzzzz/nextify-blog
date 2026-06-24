@@ -2,6 +2,7 @@ package com.nextify.blog.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.dto.BlogTagAddRequest; // 导入新增标签请求DTO
 import com.nextify.blog.dto.BlogTagUpdateRequest; // 导入更新标签请求DTO
 import com.nextify.blog.dto.TagQueryRequest;
@@ -28,6 +29,7 @@ public class BlogTagController {
      * 分页获取标签列表 (现有功能，返回VO)
      * GET /tags/page
      */
+    @PublicApi
     @GetMapping("/page")
     public Result<Page<BlogTagVo>> getTags(@RequestParam(defaultValue = "1") long pageNum,
                                                 @RequestParam(defaultValue = "20") long pageSize){
@@ -39,6 +41,7 @@ public class BlogTagController {
      * 根据ID列表获取标签信息 (现有功能，返回VO)
      * GET /tags?ids=1,2,3
      */
+    @PublicApi
     @GetMapping()
     public Result<List<BlogTagVo>> getTagInfos(TagQueryRequest request) {
         if(request == null || request.getIds() == null || request.getIds().isEmpty())
@@ -50,6 +53,7 @@ public class BlogTagController {
      * 根据ID获取标签详情 (新增功能，返回实体)
      * GET /tags/{id}
      */
+    @PublicApi
     @GetMapping("/{id}")
     public Result<BlogTag> getTagById(@PathVariable Long id) {
         return Result.success(tagService.getById(id));

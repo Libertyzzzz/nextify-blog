@@ -1,5 +1,6 @@
 package com.nextify.blog.config;
 
+import com.nextify.blog.config.security.PublicApiRequestMatcher; // 导入 PublicApiRequestMatcher
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,8 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -28,6 +27,9 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Autowired
+    private PublicApiRequestMatcher publicApiRequestMatcher;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -38,15 +40,12 @@ public class SecurityConfig {
                 // 因为使用 JWT，所以不需要 Session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/articles/**").permitAll()
-                        .requestMatchers("/tags/**").permitAll()
+                        // 允许所有带有 @PublicApi 注解的接口无需认证
+                        // 允许访问静态资源，例如上传的图片等
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/v2/**").permitAll()
-                        .requestMatchers("/access-code/**").permitAll()
-                        .requestMatchers("/comment/**").permitAll()
-                        .requestMatchers("/anonymous/**").permitAll()
-                        .requestMatchers("/admin/**").authenticated()
+
+                        .requestMatchers(publicApiRequestMatcher).permitAll()
+
                         .anyRequest().authenticated()
                 );
 
@@ -54,11 +53,6 @@ public class SecurityConfig {
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     // 跨域配置的具体内容

@@ -2,6 +2,7 @@ package com.nextify.blog.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.dto.ArticlePublishRequest;
 import com.nextify.blog.service.BlogArticleService;
 import com.nextify.blog.vo.ArticleDetailVO;
@@ -19,6 +20,7 @@ public class ArticleController {
     @Autowired
     private BlogArticleService articleService;
 
+    @PublicApi
     @GetMapping("/articles")
     public Result<Page<ArticleListItemVO>> getArticles(@RequestParam(defaultValue = "1") long pageNum,
                                                         @RequestParam(defaultValue = "10") long pageSize,
@@ -30,6 +32,7 @@ public class ArticleController {
      * 搜索文章
      * GET /articles/search
      */
+    @PublicApi
     @GetMapping("/articles/search")
     public Result<Page<ArticleListItemVO>> searchArticles(@RequestParam String keyword,
                                                           @RequestParam(defaultValue = "1") long pageNum,
@@ -37,6 +40,7 @@ public class ArticleController {
         return Result.success(articleService.searchArticles(keyword, pageNum, pageSize));
     }
 
+    @PublicApi
     @GetMapping("/articles/{id}")
     public Result<ArticleDetailVO> getDetail(@PathVariable Long id,
                                               @RequestParam(defaultValue = "1") Integer status ) {
@@ -60,6 +64,7 @@ public class ArticleController {
     }
 
 
+    @PublicApi
     @GetMapping("/articles/tags/{id}")
     public Result<ArticleTagDetailVO> getArticleTags(@PathVariable  Long id) {
         return Result.success(articleService.getArticleTagDetail(id));

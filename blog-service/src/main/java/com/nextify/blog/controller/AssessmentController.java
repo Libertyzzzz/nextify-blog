@@ -1,6 +1,7 @@
 package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.dto.AssessmentRequestDTO;
 import com.nextify.blog.service.AssessmentService;
 import com.nextify.blog.vo.AssessmentVO;
@@ -25,6 +26,7 @@ public class AssessmentController {
      * 生成唯一的 分享ID
      */
 
+    @PublicApi
     @PostMapping("/evaluate")
     public Result<AssessmentVO> evaluate(@RequestBody AssessmentRequestDTO dto,
                                          @RequestParam String gender) {
@@ -38,6 +40,7 @@ public class AssessmentController {
      * 根据shareId 查询分享快照
      * @param shareId
      */
+    @PublicApi
     @GetMapping("/share/{shareId}")
     public Result<AssessmentVO> getShareInfos(@PathVariable String shareId){
         AssessmentVO res =  assessmentService.findByShareId(shareId);

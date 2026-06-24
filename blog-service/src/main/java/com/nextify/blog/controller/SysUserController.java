@@ -1,6 +1,7 @@
 package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.dto.SysUserSaveDto;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
@@ -22,6 +23,7 @@ public class SysUserController {
     /**
      * 根据ID查询用户信息 (仅用于验证环境是否跑通)
      */
+    @PublicApi
     @GetMapping("/{id}")
     public Result<SysUser> getUserInfo(@PathVariable Long id) {
         SysUser user = sysUserMapper.selectById(id);

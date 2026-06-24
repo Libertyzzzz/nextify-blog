@@ -1,6 +1,7 @@
 package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.entity.BlogComment;
 import com.nextify.blog.service.BlogCommentService;
 import com.nextify.blog.utils.IPUtils;
@@ -21,6 +22,7 @@ public class BlogCommentController {
     /**
      * 发表评论
      */
+    @PublicApi
     @PostMapping("/publish")
     public Result<Void> post(@RequestBody BlogComment comment, HttpServletRequest request) {
 
@@ -33,6 +35,7 @@ public class BlogCommentController {
     /**
      * 获取文章评论树
      */
+    @PublicApi
     @GetMapping("/list/{articleId}")
     public Result<List<CommentVO>> list(@PathVariable Long articleId, @RequestParam(required = false) Integer status) {
         return Result.success(commentService.listByArticleId(articleId, status));
@@ -42,6 +45,7 @@ public class BlogCommentController {
      * 获取留言树
      * 留言板的文章ID指定为0
      */
+    @PublicApi
     @GetMapping("/list/guest-book")
     public Result<List<CommentVO>> listGuestBook(@RequestParam(required = false) Integer status) {
         return Result.success(commentService.listByArticleId(GUEST_BOOK_ID, status));
