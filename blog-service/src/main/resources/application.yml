@@ -49,7 +49,8 @@ nextify:
   jwt:
     header: Authorization
     secret: ${JWT_SECRET:NextifyBlogAppleStyleRomanticLogicSecretKey2025} # 生产环境必须通过环境变量设置
-    expire: ${JWT_EXPIRE:86400} # 过期时间，单位秒 (生产环境建议设置为15-30分钟)
+    expire: ${JWT_EXPIRE:1800} # 过期时间，单位秒 (生产环境建议设置为15-30分钟)
+    max-refresh: ${JWT_MAX_REFRESH:86400}
   upload:
     local-path: uploads/images
     max-image-size: 5242880 # 5MB

@@ -7,14 +7,12 @@ import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
 import com.nextify.blog.utils.JwtUtils;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,16 +58,44 @@ public class LoginController {
             return Result.fail(ResultCode.PASSWORD_ERROR);
         }
 
-        // 3. 生成 Token
-        String token = jwtUtils.createToken(user.getUsername());
+        // 3. 初次登陆,生成 Token
+        String token = jwtUtils.createToken(user.getUsername(), null);
 
         // 4. 封装返回数据
         Map<String, Object> data = new HashMap<>();
         data.put("token", token);
         data.put("user", user);
+        data.put("expire", jwtUtils.getClaimsByToken(token).getExpiration().getTime() * 1000);
         // 抹除密码敏感信息
         user.setPassword("******");
 
+        return Result.success(data);
+    }
+
+    /**
+     * Tonen刷新 每次续约30min
+     */
+    @PublicApi
+    @PostMapping("/refresh")
+    public Result<?> refreshToken(@RequestHeader("Authorization") String token) {
+        Claims claims = jwtUtils.getClaimsByToken(token);
+
+        if (claims == null) {
+            return Result.fail(ResultCode.TOKEN_INVALID);
+        }
+        Long initLoginTime = claims.get("initLoginTime", Long.class);
+
+        // 检查是否超过最大刷新窗口
+        if (initLoginTime == null || jwtUtils.isMaxExpired(claims)) {
+            return Result.fail(ResultCode.MAX_EXPIRED);
+        }
+
+        // 生成新 Token
+        String newToken = jwtUtils.createToken(claims.getSubject(), initLoginTime);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", newToken);
+        data.put("expire", jwtUtils.getClaimsByToken(newToken).getExpiration().getTime() * 1000);
         return Result.success(data);
     }
 }

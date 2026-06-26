@@ -23,7 +23,8 @@ public enum ResultCode {
     NOT_FOUND(404, "资源不存在"),
     USER_NOT_EXIST(1001, "用户不存在"),
     PASSWORD_ERROR(1002, "密码错误"),
-    TOKEN_INVALID(1003, "Token无效或已过期");
+    TOKEN_INVALID(1003, "Token无效"),
+    MAX_EXPIRED(1004, "Token已过期，请重新登录");
 
     private final Integer code;
     private final String message;
