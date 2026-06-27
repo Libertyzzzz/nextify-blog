@@ -58,7 +58,7 @@ public class JwtUtils {
                 .setIssuedAt(nowDate)
                 .setExpiration(expireDate)
                 .claim("initLoginTime", initLoginTime)
-                .claim("maxExpire", nowDate.getTime() + maxRefresh * 100) //Token存续最大时间
+                .claim("maxExpire", nowDate.getTime() + maxRefresh * 1000) //Token存续最大时间
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
