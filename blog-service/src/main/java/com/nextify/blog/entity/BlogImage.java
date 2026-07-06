@@ -32,9 +32,29 @@ public class BlogImage {
     @TableField("mime_type")
     private String mimeType;
 
+    /** 文件MD5值，用于秒传和完整性校验 */
+    private String md5;
+
+    /** 图片宽度 */
+    private Integer width;
+
+    /** 图片高度 */
+    private Integer height;
+
+    /** 图片Alt文本，用于SEO和可访问性 */
+    @TableField("alt_text")
+    private String altText;
+
+    /** 图片标题 */
+    private String title;
+
+    /** 引用次数 */
+    @TableField("reference_count")
+    private Integer referenceCount;
+
     /** 使用类型 */
     @TableField("usage_type")
-    private String usageType;
+    private Integer usageType;
 
     /** 关联业务ID */
     @TableField("usage_id")
@@ -49,6 +69,7 @@ public class BlogImage {
     private LocalDateTime createTime;
 
     /** 软删除时间 */
-    @TableField("deleted_time")
+    @TableLogic(value = "null", delval = "now")
+    @TableField("delete_time")
     private LocalDateTime deleteTime;
 }

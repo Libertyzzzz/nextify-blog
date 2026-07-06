@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Component
 public class ImageFileValidator implements FileValidator {
@@ -39,28 +40,23 @@ public class ImageFileValidator implements FileValidator {
             return ValidationResult.failure(UploadErrorEnum.INVALID_FILE_TYPE.getMessage());
         }
 
-        byte[] fileBytes = null;
-        // 3. 文件魔数校验
-        try {
-            fileBytes = file.getBytes();
-            String magicNumber = bytesToHex(fileBytes, 4);
-            boolean isValidMagicNumber = false;
-            for (String allowedMagic : ALLOWED_MAGIC_NUMBERS) {
-                if (magicNumber.toUpperCase().startsWith(allowedMagic)) {
-                    isValidMagicNumber = true;
-                    break;
-                }
+        String magicNumber = getFileMagicNumber(file);
+        boolean isValidMagicNumber =  false;
+        for (String allowedMagic : ALLOWED_MAGIC_NUMBERS) {
+            if (magicNumber != null && magicNumber.startsWith(allowedMagic)) {
+                isValidMagicNumber = true;
+                break;
             }
-            if (!isValidMagicNumber) {
-                return ValidationResult.failure(UploadErrorEnum.INVALID_PARAMETER.getMessage());
-            }
-        } catch (IOException e) {
-            return ValidationResult.failure(UploadErrorEnum.UPLOAD_FAILED.getMessage());
         }
+        if (!isValidMagicNumber) {
+            return ValidationResult.failure(UploadErrorEnum.INVALID_PARAMETER.getMessage());
+        }
+
 
         // 4. 使用ImageIO验证图片有效性（防止恶意文件）
         try {
-            BufferedImage image = ImageIO.read(new ByteArrayInputStream(fileBytes));
+            InputStream is = file.getInputStream();
+            BufferedImage image = ImageIO.read(is);
             if (image == null) {
                 return ValidationResult.failure(UploadErrorEnum.INVALID_PARAMETER.getMessage());
             }
@@ -74,6 +70,42 @@ public class ImageFileValidator implements FileValidator {
 
         return ValidationResult.success();
     }
+
+
+    /**
+     * 获取文件魔数（十六进制字符串）
+     */
+    private String getFileMagicNumber(MultipartFile file) {
+        try (
+            InputStream is = file.getInputStream()) {
+            byte[] head = new byte[4];
+            if (is.read(head) != -1) {
+                return bytesToHex(head);
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * 字节数组转十六进制
+     */
+
+    private String bytesToHex(byte[] src) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (src == null || src.length <= 0) return null;
+        for (byte b : src) {
+            int v = b & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) stringBuilder.append(0);
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString().toUpperCase();
+    }
+
+
+
 
     @Override
     public String getSupportedType() {

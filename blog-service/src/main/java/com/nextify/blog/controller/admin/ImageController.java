@@ -1,20 +1,26 @@
 package com.nextify.blog.controller.admin;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.annotaion.PublicApi;
-import com.nextify.blog.entity.BlogImage;
+import com.nextify.blog.dto.ImageDeleteDto;
+import com.nextify.blog.dto.ImageQueryDto;
+import com.nextify.blog.dto.ImageReferenceDto;
 import com.nextify.blog.service.ImageService;
+import com.nextify.blog.vo.ImageDeleteResultVo;
 import com.nextify.blog.vo.ImageInfoVo;
+import com.nextify.blog.vo.ImageReferenceVo;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/admin/upload")
+@RequestMapping("/image")
+@Slf4j
 public class ImageController {
 
     @Resource
@@ -26,10 +32,10 @@ public class ImageController {
      * @param usageId 业务id
      */
     @PublicApi
-    @PostMapping("/image/with-reference")
+    @PostMapping("/upload/with-reference")
     public Result<Map<String, String>> uploadWithReference(
         @RequestParam("file") MultipartFile file,
-        @RequestParam("usageType") String usageType,
+        @RequestParam("usageType") Integer usageType,
         @RequestParam(value = "usageId", required = false) Long usageId) {
 
         return Result.success(imageService.uploadImageWithReference(file, usageType, usageId));
@@ -39,26 +45,25 @@ public class ImageController {
      * 查询图片列表
      */
     @GetMapping("/list")
-    public Result<List<ImageInfoVo>> listImages() {
-        List<BlogImage> images = imageService.listImages();
-        return Result.success(null);
+    public Result<Page<ImageInfoVo>> listImages(ImageQueryDto request) {
+        return Result.success(imageService.listImages(request));
     }
 
     /**
      * 查询图片引用信息
      */
-    @GetMapping("/{imageId}")
-    public Result<ImageInfoVo> getImageReference(@PathVariable("imageId") String imageId) {
-        return null;
+    @GetMapping("/reference")
+    public Result<List<ImageReferenceVo>> getImageReference(ImageReferenceDto request) {
+        return Result.success(imageService.imageReference(request)) ;
     }
 
     /**
      * 删除图片
      */
-    @DeleteMapping("/{imageId}")
-    public Result<Void> deleteImage(@PathVariable("imageId") String imageId) {
-        imageService.deleteImage(imageId);
-        return Result.success();
+    @DeleteMapping("/delete")
+    public Result<ImageDeleteResultVo> deleteImage(@RequestBody ImageDeleteDto request) {
+        log.info("正在执行批量删除操作, 待删除数量: {}", request.getIds() != null ? request.getIds().size() : 0);
+        return Result.success(imageService.deleteImage(request));
     }
 
     /**

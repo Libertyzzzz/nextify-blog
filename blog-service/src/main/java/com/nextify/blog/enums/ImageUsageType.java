@@ -5,7 +5,7 @@ public enum ImageUsageType {
     AVATAR("用户头像", 2),
     ARTICLE_CONTENT("文章内容", 3),
     EVALUATION_IMAGE("评估图像", 4),
-    OTHER("其他用途", 100);
+    OTHER("其他", 100);
 
     private final String description;
     private final  Integer type;
@@ -15,6 +15,9 @@ public enum ImageUsageType {
         this.description = description;
     }
 
+    public  Integer getType(){
+        return type;
+    }
     public String getDescription() {
         return description;
     }
