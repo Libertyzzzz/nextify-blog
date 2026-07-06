@@ -68,8 +68,7 @@ public class BlogImage {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    /** 软删除时间 */
-    @TableLogic(value = "null", delval = "now")
+
     @TableField("delete_time")
     private LocalDateTime deleteTime;
 }

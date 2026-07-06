@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,9 +78,11 @@ public class ImageServiceImpl extends ServiceImpl<BlogImageMapper, BlogImage> im
 
         // 3. 仅执行可删除的
         if (!deletableIds.isEmpty()) {
-            // 这里推荐使用逻辑删除（你实体类里配置了 delete_time 字段）
-            this.removeByIds(deletableIds);
-            
+            this.lambdaUpdate()
+                .in(BlogImage::getId, deletableIds)
+                .set(BlogImage::getDeleteTime, LocalDateTime.now())
+                .update();
+
             // TODO: 触发异步任务删除磁盘上的物理文件 (Paths.get(uploadLocalPath, img.getFileName()))
             // 这里的逻辑建议参考之前讨论的 TransactionSynchronizationManager
         }

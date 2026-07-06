@@ -12,6 +12,7 @@ public class AutoUpdateFieldHandler implements MetaObjectHandler {
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject, "expiredTime", LocalDateTime.class, LocalDateTime.now());
         this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictUpdateFill(metaObject, "deleteTime", LocalDateTime.class, LocalDateTime.now());
     }
 
     @Override
