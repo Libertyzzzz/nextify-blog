@@ -70,5 +70,6 @@ public class BlogImage {
 
 
     @TableField("delete_time")
+    @TableLogic(value = "null")
     private LocalDateTime deleteTime;
 }
