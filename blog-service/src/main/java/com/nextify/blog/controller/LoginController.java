@@ -65,7 +65,7 @@ public class LoginController {
         Map<String, Object> data = new HashMap<>();
         data.put("token", token);
         data.put("user", user);
-        data.put("expire", jwtUtils.getClaimsByToken(token).getExpiration().getTime() * 1000);
+        data.put("expire", jwtUtils.getClaimsByToken(token).getExpiration().getTime());
         // 抹除密码敏感信息
         user.setPassword("******");
 
@@ -95,7 +95,7 @@ public class LoginController {
 
         Map<String, Object> data = new HashMap<>();
         data.put("token", newToken);
-        data.put("expire", jwtUtils.getClaimsByToken(newToken).getExpiration().getTime() * 1000);
+        data.put("expire", jwtUtils.getClaimsByToken(newToken).getExpiration().getTime());
         return Result.success(data);
     }
 }
