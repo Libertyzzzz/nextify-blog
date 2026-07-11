@@ -77,7 +77,7 @@ public class LoginController {
      */
     @PublicApi
     @PostMapping("/refresh")
-    public Result<?> refreshToken(@RequestHeader("Authorization") String token) {
+    public Result<Map<String, Object>> refreshToken(@RequestHeader("Authorization") String token) {
         Claims claims = jwtUtils.getClaimsByToken(token);
 
         if (claims == null) {

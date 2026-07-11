@@ -1,5 +1,7 @@
 package com.nextify.blog.config;
 
+import com.nextify.blog.config.security.CustomAccessDeniedHandler;
+import com.nextify.blog.config.security.CustomAuthenticationEntryPoint;
 import com.nextify.blog.config.security.PublicApiRequestMatcher; // 导入 PublicApiRequestMatcher
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +32,12 @@ public class SecurityConfig {
     @Autowired
     private PublicApiRequestMatcher publicApiRequestMatcher;
 
+    @Autowired
+    private CustomAuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,6 +55,11 @@ public class SecurityConfig {
                         .requestMatchers(publicApiRequestMatcher).permitAll()
 
                         .anyRequest().authenticated()
+                )
+                // 注册自定义异常处理器
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 );
 
         // 将我们的 JWT 过滤器放在账号密码过滤器之前

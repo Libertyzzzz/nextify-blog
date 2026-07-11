@@ -10,6 +10,7 @@ import com.nextify.blog.dto.ImageReferenceDto;
 import com.nextify.blog.entity.BlogImage;
 import com.nextify.blog.enums.ImageUsageType;
 import com.nextify.blog.mapper.BlogImageMapper;
+import com.nextify.blog.service.ImageFileService;
 import com.nextify.blog.vo.ImageDeleteResultVo;
 import com.nextify.blog.service.BlogArticleService;
 import com.nextify.blog.service.ImageService;
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,6 +52,9 @@ public class ImageServiceImpl extends ServiceImpl<BlogImageMapper, BlogImage> im
     @Lazy // 防止循环依赖
     @Resource
     private BlogArticleService articleService;
+
+    @Resource
+    private ImageFileService imageFileService;
 
 
     @Override
@@ -84,7 +90,24 @@ public class ImageServiceImpl extends ServiceImpl<BlogImageMapper, BlogImage> im
                 .update();
 
             // TODO: 触发异步任务删除磁盘上的物理文件 (Paths.get(uploadLocalPath, img.getFileName()))
-            // 这里的逻辑建议参考之前讨论的 TransactionSynchronizationManager
+            // 使用TransactionSynchronizationManager
+            // 提取文件名
+            List<String> fileNames = images.stream()
+                .filter(img ->  img.getId() != null && deletableIds.contains(img.getId()))
+                .map(BlogImage::getFileName)
+                .toList();
+            // 只有在删除事物执行成功后才执行物理删除
+            if(TransactionSynchronizationManager.isSynchronizationActive()){
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        imageFileService.deletePhysicalImageAsync(fileNames);
+                    }
+                });
+            }else{
+                imageFileService.deletePhysicalImageAsync(fileNames);
+            }
+
         }
 
         // 4. 返回删除报告
@@ -123,7 +146,8 @@ public class ImageServiceImpl extends ServiceImpl<BlogImageMapper, BlogImage> im
             BeanUtils.copyProperties(item, curr);
             return curr;
         }).toList();
-        Page<ImageInfoVo> res = new Page<>(request.getPageSize(), request.getPageNum(), imagePage.getTotal());
+        // Bug 修复：MyBatis Plus Page 构造函数参数顺序是 (current, size)
+        Page<ImageInfoVo> res = new Page<>(request.getPageNum(), request.getPageSize(), imagePage.getTotal());
         res.setRecords(data);
         return res;
 
