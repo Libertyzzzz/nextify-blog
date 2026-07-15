@@ -1,9 +1,18 @@
 HELP.md
-target/
+**/target/
 !.mvn/wrapper/maven-wrapper.jar
 uploads/
-!**/src/main/**/target/
-!**/src/test/**/target/
+
+# 排除所有测试代码及资源
+**/src/test/
+
+# 排除所有环境敏感的配置文件（递归匹配所有子目录）
+**/application.yml
+# 排除所有环境特定的配置文件
+**/application-*.yml
+
+# 显式允许追踪模版文件
+!**/application.yml.example
 
 ### STS ###
 .apt_generated
@@ -25,10 +34,8 @@ uploads/
 /nbbuild/
 /dist/
 /nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+/**/.nb-gradle/
+**/build/
 
 ### VS Code ###
 .vscode/

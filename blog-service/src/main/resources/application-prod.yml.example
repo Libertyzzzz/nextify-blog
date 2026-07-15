@@ -1,0 +1,26 @@
+# 生产环境配置模板 (示例)
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/nextify_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+nextify:
+  jwt:
+    secret: ${JWT_SECRET}
+  baidu:
+    api-key: ${BAIDU_API_KEY}
+    secret-key: ${BAIDU_SECRET_KEY}
+  upload:
+    local-path: /opt/nextify/uploads/
+    public-base-url: https://nextify.cn/api
+
+logging:
+  level:
+    root: INFO
+  file:
+    name: /opt/nextify/logs/blog-service.log
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl

@@ -49,12 +49,23 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.SERVER_SSH_KEY }}
+          # 定义环境变量，方便在 script 中引用
+          envs: DB_PASSWORD
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           script: |
             cd /home/dust/app/nextify-blog
             # 停止 8080 端口进程
             fuser -k 8080/tcp || true
             # 启动
             echo "Starting Nextify Blog..."
-            nohup java -Xms512m -Xmx512m -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
+            # 1. 使用 --spring.config.additional-location 指定外部 config 目录
+            # 2. 使用 -Dspring.datasource.password 动态注入密码
+            nohup java -Xms256m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError \
+              -Dspring.datasource.password=$DB_PASSWORD \
+              -jar *.jar \
+              --spring.profiles.active=prod \
+              --spring.config.additional-location=file:../config/application.yml \
+              > app.log 2>&1 &
             sleep 5
             ps -ef | grep java | grep nextify-blog
