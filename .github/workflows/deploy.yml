@@ -62,10 +62,10 @@ jobs:
             # 1. 使用 --spring.config.additional-location 指定外部 config 目录
             # 2. 使用 -Dspring.datasource.password 动态注入密码
             nohup java -Xms256m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError \
-              -Dspring.datasource.password=$DB_PASSWORD \
               -jar *.jar \
               --spring.profiles.active=prod \
               --spring.config.additional-location=file:../config/application.yml \
+              --spring.datasource.password="$DB_PASSWORD" \
               > app.log 2>&1 &
             sleep 5
             ps -ef | grep java | grep nextify-blog
