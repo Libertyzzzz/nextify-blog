@@ -45,27 +45,31 @@ jobs:
 
       - name: SSH 远程重启
         uses: appleboy/ssh-action@master
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.SERVER_SSH_KEY }}
           # 定义环境变量，方便在 script 中引用
           envs: DB_PASSWORD
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           script: |
             cd /home/dust/app/nextify-blog
-            # 停止 8080 端口进程
-            fuser -k 8080/tcp || true
-            # 启动
+            
+            echo "Stopping old process..."            
+            PID=$(pgrep -f "blog-service-1.0.0-SNAPSHOT.jar")
+            if [ -n "$PID" ]; then
+              kill -9 $PID
+            fi           
+            
             echo "Starting Nextify Blog..."
             # 1. 使用 --spring.config.additional-location 指定外部 config 目录
             # 2. 使用 -Dspring.datasource.password 动态注入密码
             nohup java -Xms256m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError \
               -jar *.jar \
               --spring.profiles.active=prod \
-              --spring.config.additional-location=file:../config/application.yml \
+              --spring.config.additional-location=file:../config/ \
               --spring.datasource.password="$DB_PASSWORD" \
               > app.log 2>&1 &
-            sleep 5
-            ps -ef | grep java | grep nextify-blog
+            sleep 10
+            ps -ef | grep blog-service | grep -v grep
