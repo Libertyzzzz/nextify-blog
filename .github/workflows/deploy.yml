@@ -57,10 +57,18 @@ jobs:
             cd /home/dust/app/nextify-blog
             
             echo "Stopping old process..."            
-            PID=$(pgrep -f "blog-service-1.0.0-SNAPSHOT.jar")
+            PID=$(pgrep -f "blog-service-1.0.0-SNAPSHOT.jar" | head -n 1)
+
             if [ -n "$PID" ]; then
-              kill -9 $PID
-            fi           
+              echo "Stopping PID=$PID"
+              kill $PID || true
+              sleep 5
+            
+              if ps -p $PID > /dev/null; then
+                echo "Force killing PID=$PID"
+                kill -9 $PID || true
+              fi
+            fi          
             
             echo "Starting Nextify Blog..."
             # 1. 使用 --spring.config.additional-location 指定外部 config 目录
@@ -71,5 +79,8 @@ jobs:
               --spring.config.additional-location=file:../config/ \
               --spring.datasource.password="$DB_PASSWORD" \
               > app.log 2>&1 &
-            sleep 10
-            ps -ef | grep blog-service | grep -v grep
+            sleep 15
+  
+            ps -ef | grep java | grep -v grep || true
+            
+            ss -tunlp | grep 8080 || true
