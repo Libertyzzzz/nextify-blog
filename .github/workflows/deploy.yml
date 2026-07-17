@@ -57,7 +57,8 @@ jobs:
             cd /home/dust/app/nextify-blog
             
             echo "Stopping old process..."            
-            PID=$(pgrep -f "blog-service-1.0.0-SNAPSHOT.jar" | head -n 1)
+            # Use a more flexible pgrep to match the *.jar used for starting
+            PID=$(pgrep -f "java -jar *.jar" | head -n 1)
 
             if [ -n "$PID" ]; then
               echo "Stopping PID=$PID"
@@ -84,3 +85,4 @@ jobs:
             ps -ef | grep java | grep -v grep || true
             
             ss -tunlp | grep 8080 || true
+            exit 0
