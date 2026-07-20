@@ -24,7 +24,10 @@ public enum ResultCode {
     USER_NOT_EXIST(1001, "用户不存在"),
     PASSWORD_ERROR(1002, "密码错误"),
     TOKEN_INVALID(1003, "Token无效"),
-    MAX_EXPIRED(1004, "Token已过期，请重新登录");
+    MAX_EXPIRED(1004, "Token已过期，请重新登录"),
+    ALIClOUD_API_EXCEPTION(1005, "阿里云API响应错误"),
+    ALIClOUD_NO_API(1006, "阿里云AI接口缺少API"),
+    ALIClOUD_API_INPUT_EXCEPTION(1007, "阿里云API输入错误");
 
     private final Integer code;
     private final String message;

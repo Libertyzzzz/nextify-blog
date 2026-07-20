@@ -6,13 +6,15 @@ uploads/
 # 排除所有测试代码及资源
 **/src/test/
 
-# 排除所有环境敏感的配置文件（递归匹配所有子目录）
+# 递归排除所有 application.yml
 **/application.yml
-# 排除所有环境特定的配置文件
+
+# 递归排除所有环境特定的配置文件 (如 application-dev.yml, application-prod.yml)
 **/application-*.yml
 
-# 显式允许追踪模版文件
+# 显式保留例外规则：允许追踪以 .example 结尾的模版文件
 !**/application.yml.example
+!**/application-*.yml.example
 
 ### STS ###
 .apt_generated
