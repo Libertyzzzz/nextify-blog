@@ -1,18 +1,24 @@
 package com.nextify.blog.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.nextify.blog.common.context.UserContextHolder;
 import com.nextify.blog.dto.ConversationCreateRequest;
 import com.nextify.blog.entity.AgentConversation;
 import com.nextify.blog.mapper.AgentConversationMapper;
 import com.nextify.blog.service.AgentConversationService;
+import com.nextify.blog.vo.ConversationListItemVo;
 import com.nextify.blog.vo.ConversationVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AgentConversationServiceImpl implements AgentConversationService {
+    private static final String CONVERSATION_PREFIX = "conv_";
 
     @Resource
     private AgentConversationMapper agentConversationMapper;
@@ -20,15 +26,14 @@ public class AgentConversationServiceImpl implements AgentConversationService {
     @Override
     public ConversationVo createConversation(ConversationCreateRequest request) {
         AgentConversation conversation = new AgentConversation();
-        conversation.setConversationId("conv_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16)); // 生成一个 conv_ 开头的唯一ID
-        // TODO: 从认证信息中获取 userId
-        conversation.setUserId(1L); // 暂时硬编码为1L，后续从认证信息中获取
+        conversation.setConversationId(CONVERSATION_PREFIX + UUID.randomUUID().toString().replace("-", "").substring(0, 16)); // 生成一个 conv_ 开头的唯一ID
+        // 从上下文获取当前登录用户ID
+        conversation.setUserId(UserContextHolder.getUserId());
         conversation.setTitle(request.getTitle() != null && !request.getTitle().isEmpty() ? request.getTitle() : "新对话");
         conversation.setContextKey(request.getContextKey() != null && !request.getContextKey().isEmpty() ? request.getContextKey() : "generic");
         conversation.setStatus(1); // 默认活跃
         conversation.setMessageCount(0);
-        conversation.setCreatedAt(LocalDateTime.now());
-        conversation.setUpdatedAt(LocalDateTime.now());
+
 
         agentConversationMapper.insert(conversation);
 
@@ -36,7 +41,33 @@ public class AgentConversationServiceImpl implements AgentConversationService {
         vo.setConversationId(conversation.getConversationId());
         vo.setTitle(conversation.getTitle());
         vo.setContextKey(conversation.getContextKey());
-        vo.setCreatedAt(conversation.getCreatedAt());
+        vo.setCreatedAt(conversation.getCreateTime());
         return vo;
+    }
+
+    @Override
+    public Page<ConversationListItemVo> getConversationList(Long userId, int page, int pageSize) {
+        Page<AgentConversation> mpPage = new Page<>(page, pageSize);
+        QueryWrapper<AgentConversation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("status", 1); // 只查询活跃的会话
+        queryWrapper.orderByDesc("created_time");
+
+        Page<AgentConversation> conversationPage = agentConversationMapper.selectPage(mpPage, queryWrapper);
+
+        List<ConversationListItemVo> voList = conversationPage.getRecords().stream().map(conversation -> {
+            ConversationListItemVo vo = new ConversationListItemVo();
+            vo.setConversationId(conversation.getConversationId());
+            vo.setTitle(conversation.getTitle());
+            vo.setLastMessagePreview(conversation.getLastMessagePreview());
+            vo.setMessageCount(conversation.getMessageCount());
+            vo.setCreatedAt(conversation.getCreateTime());
+            vo.setUpdatedAt(conversation.getUpdateTime());
+            return vo;
+        }).collect(Collectors.toList());
+
+        Page<ConversationListItemVo> resultPage = new Page<>(conversationPage.getCurrent(), conversationPage.getSize(), conversationPage.getTotal());
+        resultPage.setRecords(voList);
+        return resultPage;
     }
 }

@@ -5,6 +5,7 @@ import com.nextify.blog.dto.AgentChatRequest;
 import com.nextify.blog.dto.LlmMessage;
 import com.nextify.blog.entity.AgentMessage;
 import com.nextify.blog.mapper.AgentMessageMapper;
+import com.nextify.blog.service.ContentService; // 导入 ContentService
 import com.nextify.blog.service.PromptBuilderService;
 import com.nextify.blog.service.PromptService;
 import jakarta.annotation.Resource;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map; // 导入 Map
+
 
 @Service
 public class PromptBuilderServiceImpl implements PromptBuilderService {
@@ -22,6 +25,9 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
 
     @Resource
     private AgentMessageMapper agentMessageMapper;
+
+    @Resource // 注入 ContentService
+    private ContentService contentService;
 
     // 假设一个简单的token计算方法，实际应使用tiktoken等库
     private int countTokens(String text) {
@@ -78,13 +84,29 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
         messages.addAll(historyLlmMessages);
 
 
-        // 3. 添加当前用户消息
-        String userPromptContent = request.getMessage();
+        // 3. 添加当前用户消息，并根据 context.payload 注入额外信息
+        StringBuilder userPromptContentBuilder = new StringBuilder(request.getMessage());
+
         if (request.getContext() != null && request.getContext().getPayload() != null && !request.getContext().getPayload().isEmpty()) {
-            // TODO: 根据context.key和payload构建更复杂的user prompt
-            userPromptContent += "\n\nContext: " + request.getContext().getPayload().toString();
+            String contextKey = request.getContext().getKey();
+            Map<String, Object> payload = request.getContext().getPayload();
+
+            // 根据 contextKey 处理不同的上下文
+            if ("publish".equals(contextKey) || "post-detail".equals(contextKey)) {
+                String articleId = (String) payload.get("articleId");
+                if (articleId != null) {
+                    Map<String, Object> articleContext = contentService.getArticleContext(articleId);
+                    if (articleContext != null && !articleContext.isEmpty()) {
+                        userPromptContentBuilder.append("\n\nRelevant Article Context:\n");
+                        articleContext.forEach((key, value) ->
+                                userPromptContentBuilder.append(key).append(": ").append(value).append("\n")
+                        );
+                    }
+                }
+            }
+            // TODO: 可以根据其他 contextKey 添加更多逻辑，例如 dashboard / assessment
         }
-        messages.add(new LlmMessage("user", userPromptContent));
+        messages.add(new LlmMessage("user", userPromptContentBuilder.toString()));
 
         return messages;
     }

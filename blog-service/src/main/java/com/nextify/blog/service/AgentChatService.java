@@ -1,14 +1,10 @@
 package com.nextify.blog.service;
 
 import com.nextify.blog.dto.AIChatDto;
+import com.nextify.blog.dto.AgentChatRequest;
 import com.nextify.blog.vo.AIChatVo;
+import com.nextify.blog.vo.AgentChatResponseVo;
 
 public interface AgentChatService {
-    /**
-     * 处理AI聊天请求
-     *
-     * @param request 聊天请求
-     * @return 聊天响应
-     */
-    AIChatVo chat(AIChatDto request);
+    AIChatVo chat(String conversationId, AIChatDto request);
 }

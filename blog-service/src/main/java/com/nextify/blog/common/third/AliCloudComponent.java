@@ -77,11 +77,6 @@ public class AliCloudComponent {
 
                 return  AIChatVo.builder().content(content).action("聊天").build();
 
-
-
-
-
-
         }catch (ApiException e){
             log.info("e =", e);
             throw new BusinessException(ResultCode.ALIClOUD_API_EXCEPTION.getCode(), ResultCode.ALIClOUD_API_EXCEPTION.getMessage());
@@ -90,6 +85,41 @@ public class AliCloudComponent {
         } catch (InputRequiredException e){
             throw new BusinessException(ResultCode.ALIClOUD_API_INPUT_EXCEPTION.getCode(), ResultCode.ALIClOUD_API_INPUT_EXCEPTION.getMessage());
         }
+    }
 
+    /**
+     * 通用方法，用于接收 Dashscope 消息列表并调用通义千问
+     * @param dashscopeMessages 格式化后的 Dashscope 消息列表
+     * @param modelToUse 使用的模型名称
+     * @return GenerationResult 原始响应结果
+     */
+    public GenerationResult callWithDashscopeMessages(List<Message> dashscopeMessages, String modelToUse) {
+        try {
+            Generation gen = new Generation(Protocol.HTTP.getValue(), baseUrl);
+            GenerationParam param = GenerationParam.builder()
+                .apiKey(apiKey)
+                .model(modelToUse)
+                .messages(dashscopeMessages)
+                .resultFormat(GenerationParam.ResultFormat.MESSAGE)
+                .build();
+
+            GenerationResult response = gen.call(param);
+
+            if (response.getStatusCode() != 200) {
+                log.error("AliCloud API returned non-200 status: {}", response.getStatusCode());
+                throw new BusinessException(ResultCode.ALIClOUD_API_EXCEPTION.getCode(), "AliCloud API error: " + response.getStatusCode());
+            }
+            return response;
+
+        } catch (ApiException e) {
+            log.error("AliCloud API Exception: {}", e.getMessage(), e);
+            throw new BusinessException(ResultCode.ALIClOUD_API_EXCEPTION.getCode(), ResultCode.ALIClOUD_API_EXCEPTION.getMessage() + ": " + e.getMessage());
+        } catch (NoApiKeyException e) {
+            log.error("AliCloud No API Key Exception: {}", e.getMessage(), e);
+            throw new BusinessException(ResultCode.ALIClOUD_NO_API.getCode(), ResultCode.ALIClOUD_NO_API.getMessage());
+        } catch (InputRequiredException e) {
+            log.error("AliCloud Input Required Exception: {}", e.getMessage(), e);
+            throw new BusinessException(ResultCode.ALIClOUD_API_INPUT_EXCEPTION.getCode(), ResultCode.ALIClOUD_API_INPUT_EXCEPTION.getMessage() + ": " + e.getMessage());
+        }
     }
 }

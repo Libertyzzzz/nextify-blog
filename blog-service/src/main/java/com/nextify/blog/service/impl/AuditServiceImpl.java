@@ -17,6 +17,6 @@ public class AuditServiceImpl implements AuditService {
             return content;
         }
         // 使用敏感词过滤器进行替换
-        return sensitiveWordFilter.replaceSensitiveWord(content, '*');
+        return sensitiveWordFilter.replaceSensitiveWord(content);
     }
 }
