@@ -20,6 +20,8 @@ public class SysUser implements Serializable {
     /** 登录账号 */
     private String username;
 
+    private Long userId;
+
     /** 加密密码 (存储时需使用 BCrypt 强度加密) */
     private String password;
 

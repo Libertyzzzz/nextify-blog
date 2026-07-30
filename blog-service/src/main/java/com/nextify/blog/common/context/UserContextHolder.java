@@ -3,7 +3,7 @@ package com.nextify.blog.common.context;
 /**
  * 当前登录用户信息上下文
  */
-public class UserContext {
+public class UserContextHolder {
     private static final ThreadLocal<Long> USER_ID_HOLDER = new ThreadLocal<>();
 
     /**
