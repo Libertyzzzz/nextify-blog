@@ -38,7 +38,7 @@ public class JwtUtils {
      * @param username 用户名
      * @return JWT 字符串
      */
-    public String createToken(String username, Long initLoginTime) {
+    public String createToken(String username, Long initLoginTime, Long userId) {
         Date nowDate = new Date();
         // 计算过期时间
         Date expireDate = new Date(nowDate.getTime() + expire * 1000);
@@ -58,7 +58,8 @@ public class JwtUtils {
                 .setIssuedAt(nowDate)
                 .setExpiration(expireDate)
                 .claim("initLoginTime", initLoginTime)
-                .claim("maxExpire", nowDate.getTime() + maxRefresh * 1000) //Token存续最大时间
+                .claim("maxExpire", maxExpireTime)
+                .claim("userId", userId) //Token存续最大时间
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

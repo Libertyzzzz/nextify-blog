@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.ResultCode;
 import com.nextify.blog.common.annotaion.PublicApi;
+import com.nextify.blog.common.context.UserContextHolder;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
 import com.nextify.blog.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,7 +61,7 @@ public class LoginController {
         }
 
         // 3. 初次登陆,生成 Token
-        String token = jwtUtils.createToken(user.getUsername(), null);
+        String token = jwtUtils.createToken(user.getUsername(), null, user.getUserId());
 
         // 4. 封装返回数据
         Map<String, Object> data = new HashMap<>();
@@ -91,7 +93,7 @@ public class LoginController {
         }
 
         // 生成新 Token
-        String newToken = jwtUtils.createToken(claims.getSubject(), initLoginTime);
+        String newToken = jwtUtils.createToken(claims.getSubject(), initLoginTime, UserContextHolder.getUserId());
 
         Map<String, Object> data = new HashMap<>();
         data.put("token", newToken);
