@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.UUID;
 
-@Service
+@Service(value = "openai")
 public class OpenAiProviderImpl implements LlmProvider {
 
     @Override

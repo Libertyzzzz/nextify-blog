@@ -1,5 +1,7 @@
 package com.nextify.blog.service.impl;
 
+import com.nextify.blog.enums.LlmModelEnum;
+import com.nextify.blog.enums.LlmProviderEnum;
 import com.nextify.blog.service.LlmRouterService;
 import org.springframework.stereotype.Service;
 
@@ -20,27 +22,23 @@ public class LlmRouterServiceImpl implements LlmRouterService {
 
     @Override
     public String resolveModel(String action) {
-        // TODO: 根据 action 路由到不同的模型
-        // 示例逻辑：
-        if ("generate_title".equals(action)) {
-            return "qwen -plus"; // 写作工具使用高质量模型，例如通义千问增强版
-        } else if ("chat".equals(action)) {
-            return "qwen-turbo"; // 纯聊天使用经济型模型，例如通义千问标准版
-        }
-        return "qwen-turbo"; // 默认模型
+        // 根据 action 路由到不同的模型
+        //
+
+        return LlmModelEnum.QWEN_PLUS.getModelName(); // 默认模型
     }
 
     @Override
-    public String resolveProvider(String model) {
-        // TODO: 根据模型路由到不同的 Provider
-        // 示例逻辑：
-        if (model.startsWith("gpt")) {
-            return "openai";
-        } else if (model.startsWith("deepseek")) {
-            return "deepseek";
-        } else if (model.startsWith("qwen")) { // 通义千问模型
-            return "aliyun";
+    public String  resolveProvider(String modelName) {
+
+
+        if (modelName.startsWith("gpt")) {
+            return LlmProviderEnum.OPENAI.getProviderName();
+        } else if (modelName.startsWith("deepseek")) {
+            return LlmProviderEnum.DEEPSEEK.getProviderName();
+        } else if (modelName.startsWith("qwen")) { // 通义千问模型
+            return LlmProviderEnum.ALIYUN.getProviderName();
         }
-        return "aliyun"; // 默认 Provider
+        return LlmProviderEnum.ALIYUN.getProviderName(); // 默认 Provider
     }
 }

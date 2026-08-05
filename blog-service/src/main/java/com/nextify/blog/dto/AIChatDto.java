@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class AIChatDto {
+public class  AIChatDto {
     /**
      * 动作类型：chat/generate_title/polish_text/continue_write/generate_summary/check_typo/generate_outline
      */

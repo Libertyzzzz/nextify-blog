@@ -34,6 +34,6 @@ public class AgentSystemPrompt implements Serializable {
     @TableField("is_active")
     private Integer isActive;
 
-    @TableField("created_at")
-    private LocalDateTime createdTime;
+    @TableField("create_time")
+    private LocalDateTime createTime;
 }

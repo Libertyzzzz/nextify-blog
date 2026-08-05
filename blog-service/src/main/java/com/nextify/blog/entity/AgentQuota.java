@@ -37,9 +37,9 @@ public class AgentQuota implements Serializable {
     @TableField("period_end_at")
     private LocalDateTime periodEndAt;
 
-    @TableField("created_at")
+    @TableField("create_time")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
+    @TableField("update_time")
     private LocalDateTime updatedAt;
 }

@@ -73,6 +73,6 @@ public class AgentMessage implements Serializable {
     @TableField("user_agent")
     private String userAgent;
 
-    @TableField("created_at")
+    @TableField("create_time")
     private LocalDateTime createTime;
 }

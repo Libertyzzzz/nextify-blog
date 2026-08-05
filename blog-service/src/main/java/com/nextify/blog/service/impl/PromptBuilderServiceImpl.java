@@ -1,9 +1,14 @@
 package com.nextify.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.knuddels.jtokkit.Encodings;
+import com.knuddels.jtokkit.api.Encoding;
+import com.knuddels.jtokkit.api.EncodingRegistry;
+import com.knuddels.jtokkit.api.EncodingType;
 import com.nextify.blog.dto.AgentChatRequest;
 import com.nextify.blog.dto.LlmMessage;
 import com.nextify.blog.entity.AgentMessage;
+import com.nextify.blog.enums.AgentRoleEnum;
 import com.nextify.blog.mapper.AgentMessageMapper;
 import com.nextify.blog.service.ContentService; // 导入 ContentService
 import com.nextify.blog.service.PromptBuilderService;
@@ -20,6 +25,10 @@ import java.util.Map; // 导入 Map
 @Service
 public class PromptBuilderServiceImpl implements PromptBuilderService {
 
+    private static final EncodingRegistry REGISTRY = Encodings.newDefaultEncodingRegistry();
+    private static final Encoding ENCODING = REGISTRY.getEncoding(EncodingType.CL100K_BASE);
+
+
     @Resource
     private PromptService promptService;
 
@@ -29,9 +38,9 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
     @Resource // 注入 ContentService
     private ContentService contentService;
 
-    // 假设一个简单的token计算方法，实际应使用tiktoken等库
+    // calculate token
     private int countTokens(String text) {
-        return text != null ? text.length() / 4 : 0; // 粗略估算，1个汉字或4个英文字符约等于1 token
+        return text != null ? ENCODING.countTokens(text) : 0;
     }
 
     @Override
@@ -41,7 +50,7 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
         // 1. 添加 System Prompt
         String systemPromptText = promptService.getSystemPrompt(request.getContext() != null ? request.getContext().getKey() : "generic");
         if (systemPromptText != null && !systemPromptText.isEmpty()) {
-            messages.add(new LlmMessage("system", systemPromptText));
+            messages.add(new LlmMessage(AgentRoleEnum.SYSTEM.getValue(), systemPromptText));
         }
 
         // 2. 添加历史消息 (从后向前累加，直到超过预算)
@@ -54,7 +63,7 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
                 new QueryWrapper<AgentMessage>()
                         .eq("conversation_id", conversationId)
                         .eq("user_id", userId)
-                        .orderByDesc("created_at")
+                        .orderByDesc("create_time")
                         .last("LIMIT 20") // 假设最多加载最近20条消息
         );
 
@@ -64,7 +73,7 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
         List<LlmMessage> historyLlmMessages = new ArrayList<>();
         for (AgentMessage msg : historyMessages) {
             // 过滤掉当前请求的用户消息，因为它会单独添加
-            if (msg.getRole().equals("user") && msg.getContent().equals(request.getMessage())) {
+            if (msg.getRole().equals(AgentRoleEnum.USER.getValue()) && msg.getContent().equals(request.getMessage())) {
                 continue;
             }
 
@@ -75,7 +84,7 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
             // TODO: 更精确的预算控制，例如为LLM的回复预留空间
             if (currentTokens + msgTokens > maxTokensPerRequest * 0.8) { // 留20%给LLM回复
                 // 在顶部插入提示
-                messages.add(1, new LlmMessage("system", "更早的对话已省略..."));
+                messages.add(1, new LlmMessage(AgentRoleEnum.SYSTEM.getValue(), "更早的对话已省略..."));
                 break;
             }
             historyLlmMessages.add(llmMsg);
@@ -106,7 +115,7 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
             }
             // TODO: 可以根据其他 contextKey 添加更多逻辑，例如 dashboard / assessment
         }
-        messages.add(new LlmMessage("user", userPromptContentBuilder.toString()));
+        messages.add(new LlmMessage(AgentRoleEnum.USER.getValue(), userPromptContentBuilder.toString()));
 
         return messages;
     }

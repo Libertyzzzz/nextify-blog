@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PromptServiceImpl implements PromptService {
+    private static final String DEFAULT_PROMPT = "You are a helpful AI assistant.";
 
     @Resource
     private AgentSystemPromptMapper agentSystemPromptMapper;
@@ -28,6 +29,6 @@ public class PromptServiceImpl implements PromptService {
             return systemPrompt.getPromptText();
         }
         // 提供一个默认的系统提示词
-        return "You are a helpful AI assistant.";
+        return DEFAULT_PROMPT;
     }
 }

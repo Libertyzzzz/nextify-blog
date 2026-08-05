@@ -1,11 +1,18 @@
 package com.nextify.blog.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
+import com.nextify.blog.common.context.UserContextHolder;
 import com.nextify.blog.dto.AgentChatRequest;
 import com.nextify.blog.dto.LlmMessage;
 import com.nextify.blog.dto.LlmRequest; // 导入 LlmRequest
 import com.nextify.blog.entity.AgentConversation;
 import com.nextify.blog.entity.AgentMessage;
+import com.nextify.blog.entity.AgentQuota;
 import com.nextify.blog.entity.AgentUsageLog;
 import com.nextify.blog.mapper.AgentConversationMapper;
 import com.nextify.blog.mapper.AgentMessageMapper;
@@ -16,9 +23,11 @@ import com.nextify.blog.service.LlmRouterService; // 导入 LlmRouterService
 import com.nextify.blog.service.PromptBuilderService;
 import com.nextify.blog.service.QuotaService;
 import com.nextify.blog.vo.AgentChatResponseVo;
+import com.nextify.blog.vo.AgentMessageVo;
 import com.nextify.blog.vo.LlmResponse; // 导入 LlmResponse
 import com.nextify.blog.vo.UsageVo;
 import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map; // 导入 Map
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ConversationChatServiceImpl implements ConversationChatService {
@@ -54,26 +64,25 @@ public class ConversationChatServiceImpl implements ConversationChatService {
     @Override
     @Transactional
     public AgentChatResponseVo chat(String conversationId, AgentChatRequest request) {
-        // TODO: 1) 鉴权 & 限流 (假设 userId 已获取)
-        Long userId = 1L; // 暂时硬编码为1L，后续从认证信息中获取
 
-        // 2) 解析 conversation - 检查会话是否存在
+        Long userId = UserContextHolder.getUserId();
+
         AgentConversation conversation = agentConversationMapper.selectOne(
                 new QueryWrapper<AgentConversation>().eq("conversation_id", conversationId).eq("user_id", userId)
         );
 
         if (conversation == null) {
-            // TODO: 抛出业务异常，会话不存在
+
             throw new RuntimeException("Conversation not found.");
         }
 
-        // 3) 拼装 Prompt
+        // 拼装 Prompt
         List<LlmMessage> llmMessages = promptBuilderService.buildPromptMessages(userId, conversationId, request);
 
-        // 4) 路由到合适 Provider / Model
+        // 路由到合适 Provider / Model
         String model = llmRouterService.resolveModel(request.getAction());
         String providerName = llmRouterService.resolveProvider(model);
-        LlmProvider llmProvider = llmProviderMap.get(providerName + "Impl"); // Spring 默认会将 bean 名称加上 Impl 后缀
+        LlmProvider llmProvider = llmProviderMap.get(providerName);
 
         if (llmProvider == null) {
             throw new RuntimeException("LLM Provider not found for: " + providerName); // TODO: 抛出更友好的业务异常
@@ -176,5 +185,52 @@ public class ConversationChatServiceImpl implements ConversationChatService {
         responseVo.setCreatedAt(assistantMessage.getCreateTime());
 
         return responseVo;
+    }
+
+    @Override
+    public List<AgentMessageVo> load(String conversationID) {
+        Long userId = UserContextHolder.getUserId();
+        LambdaQueryWrapper<AgentMessage> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AgentMessage::getConversationId, conversationID)
+            .eq(AgentMessage::getUserId, userId)
+            .orderBy( true, true, AgentMessage::getCreateTime);
+        List<AgentMessage> messages =  agentMessageMapper.selectList(wrapper);
+        return  messages.stream().map(item -> {
+            AgentMessageVo curr = new AgentMessageVo();
+            BeanUtils.copyProperties(item, curr);
+            return curr;
+        }).toList();
+
+    }
+
+    @Override
+    public Boolean delete(String conversationID) {
+        Long userId = UserContextHolder.getUserId();
+
+        // 删除会话表
+        LambdaUpdateWrapper<AgentConversation> conversationLambdaQueryWrapper = new LambdaUpdateWrapper<>();
+        conversationLambdaQueryWrapper.eq(AgentConversation::getConversationId, conversationID)
+            .eq(AgentConversation::getUserId, userId)
+            .eq(AgentConversation::getStatus, 1);
+        LambdaUpdateWrapper<AgentMessage> messageLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        messageLambdaUpdateWrapper.eq(AgentMessage::getConversationId, conversationID)
+            .eq(AgentMessage::getUserId, userId);
+        return agentConversationMapper.delete(conversationLambdaQueryWrapper) > 0
+            && agentMessageMapper.delete(messageLambdaUpdateWrapper) >= 0;
+
+
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Boolean update(String conversationID, String title) {
+        Long userId = UserContextHolder.getUserId();
+        LambdaUpdateWrapper<AgentConversation> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(AgentConversation::getConversationId, conversationID)
+            .eq(AgentConversation::getUserId, userId)
+            .eq(AgentConversation::getStatus, 1)
+            .set(AgentConversation::getTitle, title);
+
+        return agentConversationMapper.update(wrapper) > 0;
     }
 }

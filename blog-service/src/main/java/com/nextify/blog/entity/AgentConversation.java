@@ -46,9 +46,9 @@ public class AgentConversation implements Serializable {
     @TableField("first_message_at")
     private LocalDateTime firstMessageAt;
 
-    @TableField("created_at")
+    @TableField("create_time")
     private LocalDateTime createTime;
 
-    @TableField("updated_at")
+    @TableField("update_time")
     private LocalDateTime updateTime;
 }

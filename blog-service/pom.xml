@@ -124,6 +124,13 @@
             <version>2.22.24</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- JTokkit: 专业的 Token 计算库 -->
+        <dependency>
+            <groupId>com.knuddels</groupId>
+            <artifactId>jtokkit</artifactId>
+            <version>1.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

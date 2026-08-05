@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 public class AgentConversationServiceImpl implements AgentConversationService {
     private static final String CONVERSATION_PREFIX = "conv_";
+    private static final String DEFAULT_TITLE = "新会话";
 
     @Resource
     private AgentConversationMapper agentConversationMapper;
@@ -29,7 +30,7 @@ public class AgentConversationServiceImpl implements AgentConversationService {
         conversation.setConversationId(CONVERSATION_PREFIX + UUID.randomUUID().toString().replace("-", "").substring(0, 16)); // 生成一个 conv_ 开头的唯一ID
         // 从上下文获取当前登录用户ID
         conversation.setUserId(UserContextHolder.getUserId());
-        conversation.setTitle(request.getTitle() != null && !request.getTitle().isEmpty() ? request.getTitle() : "新对话");
+        conversation.setTitle(request.getTitle() != null && !request.getTitle().isEmpty() ? request.getTitle() : DEFAULT_TITLE);
         conversation.setContextKey(request.getContextKey() != null && !request.getContextKey().isEmpty() ? request.getContextKey() : "generic");
         conversation.setStatus(1); // 默认活跃
         conversation.setMessageCount(0);
@@ -51,7 +52,7 @@ public class AgentConversationServiceImpl implements AgentConversationService {
         QueryWrapper<AgentConversation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("status", 1); // 只查询活跃的会话
-        queryWrapper.orderByDesc("created_time");
+        queryWrapper.orderByDesc("create_time");
 
         Page<AgentConversation> conversationPage = agentConversationMapper.selectPage(mpPage, queryWrapper);
 

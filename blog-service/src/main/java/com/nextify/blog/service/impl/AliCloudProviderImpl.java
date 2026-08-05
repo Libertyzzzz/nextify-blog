@@ -7,6 +7,7 @@ import com.alibaba.dashscope.common.Role;
 import com.nextify.blog.common.third.AliCloudComponent;
 import com.nextify.blog.dto.LlmMessage;
 import com.nextify.blog.dto.LlmRequest;
+import com.nextify.blog.enums.AgentRoleEnum;
 import com.nextify.blog.service.LlmProvider;
 import com.nextify.blog.vo.LlmResponse;
 import com.nextify.blog.vo.UsageVo;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
+@Service(value = "aliyun")
 public class AliCloudProviderImpl implements LlmProvider {
 
     @Resource
@@ -37,8 +38,8 @@ public class AliCloudProviderImpl implements LlmProvider {
         // 1. 将 LlmMessage 转换为 Dashscope 的 Message 格式
         List<Message> dashscopeMessages = request.getMessages().stream()
                 .map(llmMessage -> Message.builder()
-                        .role(llmMessage.getRole().equals("user") ? Role.USER.getValue() :
-                                llmMessage.getRole().equals("assistant") ? Role.ASSISTANT.getValue() :
+                        .role(llmMessage.getRole().equals(AgentRoleEnum.USER.getValue()) ? Role.USER.getValue() :
+                                llmMessage.getRole().equals(AgentRoleEnum.ASSISTANT.getValue()) ? Role.ASSISTANT.getValue() :
                                         Role.SYSTEM.getValue()) // 假设只有这三种角色
                         .content(llmMessage.getContent())
                         .build())

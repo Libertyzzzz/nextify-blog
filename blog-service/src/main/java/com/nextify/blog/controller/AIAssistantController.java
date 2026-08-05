@@ -11,12 +11,11 @@ import com.nextify.blog.dto.ConversationCreateRequest;
 import com.nextify.blog.service.AgentChatService;
 import com.nextify.blog.service.AgentConversationService;
 import com.nextify.blog.service.ConversationChatService;
-import com.nextify.blog.vo.AIChatVo;
-import com.nextify.blog.vo.AgentChatResponseVo;
-import com.nextify.blog.vo.ConversationListItemVo;
-import com.nextify.blog.vo.ConversationVo;
+import com.nextify.blog.vo.*;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/agent")
@@ -46,6 +45,11 @@ public class AIAssistantController {
         return Result.success(agentChatService.chat(conversationId, request));
     }
 
+    /**
+     * 创建会话
+     * @param request
+     * @return
+     */
     @RequiredLogin
     @RateLimiter(time = 10, count = 5)
     @PostMapping("/conversations")
@@ -53,8 +57,13 @@ public class AIAssistantController {
         return Result.success(agentConversationService.createConversation(request));
     }
 
+    /**
+     * 列出会话列表
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @RequiredLogin
-    @RateLimiter(time = 10, count = 10)
     @GetMapping("/conversations")
     public Result<Page<ConversationListItemVo>> getConversations(
             @RequestParam(defaultValue = "1") int page,
@@ -64,6 +73,14 @@ public class AIAssistantController {
         return Result.success(agentConversationService.getConversationList(userId, page, pageSize));
     }
 
+
+
+    /**
+     * 会话聊天
+     * @param conversationId
+     * @param request
+     * @return
+     */
     @RequiredLogin
     @RateLimiter(time = 5, count = 2)
     @PostMapping("/chat/{conversationId}")
@@ -71,5 +88,48 @@ public class AIAssistantController {
             @PathVariable String conversationId,
             @RequestBody AgentChatRequest request) {
         return Result.success(conversationChatService.chat(conversationId, request));
+    }
+
+    /**
+     * 会话聊天历史
+     * @param conversationId     *
+     * @return
+     */
+    @RequiredLogin
+    @GetMapping("/chat/{conversationId}")
+    public Result<List<AgentMessageVo>> conversationContext(@PathVariable String conversationId){
+
+
+        return Result.success(conversationChatService.load(conversationId));
+    }
+
+    /**
+     * 修改会话名称
+     * @param conversationId     *
+     * @return
+     */
+    @RequiredLogin
+    @RateLimiter(time = 5, count = 2)
+    @PutMapping("/chat/{conversationId}")
+    public Result<Boolean> conversationUpdateTitle(@PathVariable String conversationId,
+                                                    @RequestParam String title){
+
+
+        return Result.success(conversationChatService.update(conversationId, title));
+    }
+
+
+    /**
+     * 删除会话
+     * @param conversationId     *
+     * @return
+     */
+    @RequiredLogin
+    @RateLimiter(time = 5, count = 2)
+    @DeleteMapping("/chat/{conversationId}")
+    public Result<Boolean> conversationDelet(@PathVariable String conversationId){
+
+
+        return Result.success(conversationChatService.delete(conversationId));
     }
 }
