@@ -6,4 +6,5 @@ import com.nextify.blog.mapper.SysUserMapper;
 
 public interface SysUserService {
     Boolean saveUser(SysUserSaveDto request);
+    SysUser findByUserId(Long userId);
 }

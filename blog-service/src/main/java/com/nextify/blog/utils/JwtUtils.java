@@ -1,9 +1,11 @@
 package com.nextify.blog.utils;
 
+import com.nextify.blog.common.properties.JwtAuthenticationProperty;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,42 +25,27 @@ import java.util.Date;
 @Getter
 public class JwtUtils {
 
-    @Value("${nextify.jwt.secret}")
-    private String secret;
-
-    @Value("${nextify.jwt.expire}")
-    private Long expire;
-
-    @Value("${nextify.jwt.max-refresh}")
-    private Long maxRefresh;
-
+    @Resource
+    private JwtAuthenticationProperty jwtAuthenticationProperty;
 
     /**
      * 生成 Token
      * @param username 用户名
      * @return JWT 字符串
      */
-    public String createToken(String username, Long initLoginTime, Long userId) {
+    public String createToken(String username, Long userId) {
         Date nowDate = new Date();
         // 计算过期时间
-        Date expireDate = new Date(nowDate.getTime() + expire * 1000);
+        Date expireDate = new Date(nowDate.getTime() + jwtAuthenticationProperty.getExpire() * 1000);
 
-        // 说明是首次登陆
-        if(initLoginTime == null)
-            initLoginTime = nowDate.getTime();
-
-        // 计算最大过期时间，始终是initLoginTime + 24小时
-        long maxExpireTime = initLoginTime + maxRefresh * 1000;
         // 使用 HMAC-SHA 算法生成密钥
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = Keys.hmacShaKeyFor(jwtAuthenticationProperty.getSecret().getBytes(StandardCharsets.UTF_8));
 
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setSubject(username)
                 .setIssuedAt(nowDate)
                 .setExpiration(expireDate)
-                .claim("initLoginTime", initLoginTime)
-                .claim("maxExpire", maxExpireTime)
                 .claim("userId", userId) //Token存续最大时间
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -78,7 +65,7 @@ public class JwtUtils {
      */
     public Claims getClaimsByToken(String token) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+            SecretKey key = Keys.hmacShaKeyFor(jwtAuthenticationProperty.getSecret().getBytes(StandardCharsets.UTF_8));
             return Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()

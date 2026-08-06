@@ -1,17 +1,21 @@
 package com.nextify.blog.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.nextify.blog.dto.SysUserSaveDto;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
 import com.nextify.blog.service.SysUserService;
 import com.nextify.blog.utils.JwtUtils;
+import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
+    @Resource
+    private SysUserMapper userMapper;
     @Override
     public Boolean saveUser(SysUserSaveDto request) {
         SysUser user = new SysUser();
@@ -33,5 +37,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     }
 
+    @Override
+    public SysUser findByUserId(Long userId) {
+        return userMapper.selectOne(
+            new LambdaQueryWrapper<SysUser>().eq(SysUser::getUserId, userId));
+    }
 }
 
