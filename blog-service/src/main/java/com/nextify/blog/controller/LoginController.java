@@ -142,7 +142,7 @@ public class LoginController {
      * Token刷新 每次续约30min
      * Token刷新：每次从HttpOnly Cookie读取Refresh Token
      */
-    @RequiredLogin
+    @PublicApi
     @PostMapping("/refresh")
     public Result<Map<String, Object>> refreshToken(
                         HttpServletRequest request,

@@ -14,6 +14,7 @@ import com.nextify.blog.entity.AgentConversation;
 import com.nextify.blog.entity.AgentMessage;
 import com.nextify.blog.entity.AgentQuota;
 import com.nextify.blog.entity.AgentUsageLog;
+import com.nextify.blog.enums.AgentRoleEnum;
 import com.nextify.blog.mapper.AgentConversationMapper;
 import com.nextify.blog.mapper.AgentMessageMapper;
 import com.nextify.blog.mapper.AgentUsageLogMapper;
@@ -135,7 +136,7 @@ public class ConversationChatServiceImpl implements ConversationChatService {
         assistantMessage.setMessageId(llmResponse.getMessageId() != null ? llmResponse.getMessageId() : "msg_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
         assistantMessage.setConversationId(conversationId);
         assistantMessage.setUserId(userId);
-        assistantMessage.setRole("assistant");
+        assistantMessage.setRole(AgentRoleEnum.ASSISTANT.getValue());
         assistantMessage.setAction(request.getAction());
         assistantMessage.setContent(llmResponse.getContent());
         assistantMessage.setCandidates(llmResponse.getCandidates() != null ? String.join(",", llmResponse.getCandidates()) : null); // 将 List<String> 转换为逗号分隔的字符串
