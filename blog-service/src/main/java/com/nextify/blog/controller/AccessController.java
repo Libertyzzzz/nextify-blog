@@ -12,6 +12,8 @@ import com.nextify.blog.vo.AddressInfoVO;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.PriorityQueue;
+
 @RestController
 @RequestMapping("/access-code")
 public class AccessController {
@@ -31,8 +33,8 @@ public class AccessController {
     }
 
     @PublicApi
-    @GetMapping("/{id}")
-    public Result<AccessCodeVo> getAccessCode(@PathVariable Integer id){
+    @GetMapping("/gate")
+    public Result<AccessCodeVo> getAccessCode(@RequestParam Integer id){
         return Result.success(accessCodeService.getAccessCodeVo(id));
     }
 

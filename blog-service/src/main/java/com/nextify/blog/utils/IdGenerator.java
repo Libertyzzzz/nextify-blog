@@ -3,7 +3,6 @@ package com.nextify.blog.utils;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
 @Component

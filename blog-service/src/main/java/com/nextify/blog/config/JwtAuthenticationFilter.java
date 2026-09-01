@@ -1,6 +1,10 @@
 package com.nextify.blog.config;
 
 import com.nextify.blog.common.context.UserContextHolder;
+import com.nextify.blog.dto.UserPermissionInfo;
+import com.nextify.blog.entity.SysRole;
+import com.nextify.blog.mapper.SysRoleMapper;
+import com.nextify.blog.service.PermissionService;
 import com.nextify.blog.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -10,6 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -17,53 +23,99 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-/**
- * JWT 请求拦截器
- * 继承 OncePerRequestFilter 确保每个请求只被拦截一次
- */
 @Component
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+
     @Autowired
     private JwtUtils jwtUtils;
+    @Autowired
+    private PermissionService permissionService;
+    @Autowired
+    private SysRoleMapper roleMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         try {
-            // 1. 从 Header 中获取 Authorization
             String token = request.getHeader("Authorization");
 
-            // 2. 如果 Header 为空，直接进入下一个过滤器（如果是受限接口，Security 后面会拦住）
             if (!StringUtils.hasText(token)) {
                 chain.doFilter(request, response);
                 return;
             }
 
-            // 3. 解析并验证 Token
             Claims claims = jwtUtils.getClaimsByToken(token);
             if (claims == null || jwtUtils.isTokenExpired(claims)) {
-                // Token 无效或过期，不设置上下文，直接放行
                 chain.doFilter(request, response);
                 return;
             }
 
-            // 4. 获取用户名并构建 Security 认证对象
             String username = claims.getSubject();
             Long userId = claims.get("userId", Long.class);
             UserContextHolder.setUserId(userId);
-            // 注意：这里的权限列表暂时传空 (new ArrayList<>() )，后续复杂权限可以从数据库查
+
+            UserPermissionInfo permInfo = null;
+            Collection<GrantedAuthority> authorities = new ArrayList<>();
+
+            try {
+                if (userId != null) {
+                    permInfo = permissionService.getUserPermissionInfo(userId);
+
+                    List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+                    Set<String> roleCodes = permInfo.getRoleCodes();
+                    Set<String> permCodes = permInfo.getPermissionCodes();
+
+                    if (roleCodes != null) {
+                        for (String roleCode : roleCodes) {
+                            String roleWithPrefix = roleCode.startsWith("ROLE_") ? roleCode : "ROLE_" + roleCode;
+                            grantedAuthorities.add(new SimpleGrantedAuthority(roleWithPrefix));
+                        }
+                    }
+
+                    if (Boolean.TRUE.equals(permInfo.getIsSuperAdmin())) {
+                        try {
+                            List<SysRole> allRoles = roleMapper.selectList(null);
+                            for (SysRole role : allRoles) {
+                                String roleCode = role.getRoleCode();
+                                String roleWithPrefix = roleCode.startsWith("ROLE_") ? roleCode : "ROLE_" + roleCode;
+                                if (grantedAuthorities.stream().noneMatch(
+                                        g -> g.getAuthority().equals(roleWithPrefix))) {
+                                    grantedAuthorities.add(new SimpleGrantedAuthority(roleWithPrefix));
+                                }
+                            }
+                            log.debug("超级管理员 {}, 已追加全部 {} 个角色", userId, allRoles.size());
+                        } catch (Exception ex) {
+                            log.warn("超管追加角色失败, userId={}, error={}", userId, ex.getMessage());
+                        }
+                    }
+
+                    if (permCodes != null) {
+                        for (String permCode : permCodes) {
+                            grantedAuthorities.add(new SimpleGrantedAuthority(permCode));
+                        }
+                    }
+                    authorities = grantedAuthorities;
+
+                    UserContextHolder.setPermissionInfo(permInfo);
+                }
+            } catch (Exception e) {
+                log.warn("加载用户权限失败, userId={}, error={}", userId, e.getMessage());
+            }
+
             UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                new UsernamePasswordAuthenticationToken(username, null, authorities);
+            authentication.setDetails(permInfo);
 
-            // 5. 将认证信息存入全局上下文，Security 就会认为当前用户已登录
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // 6. 继续后续过滤链
             chain.doFilter(request, response);
-        }finally {
+        } finally {
             UserContextHolder.remove();
         }
     }

@@ -12,7 +12,6 @@ import com.nextify.blog.mapper.SysUserMapper;
 import com.nextify.blog.service.SysUserService;
 import com.nextify.blog.utils.JwtUtils;
 import com.nextify.blog.utils.RedisUtils;
-import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -73,7 +72,9 @@ public class LoginController {
 
         // 1. 查询用户
         SysUser user = sysUserMapper.selectOne(
-                new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, username)
+                new LambdaQueryWrapper<SysUser>()
+                    .eq(SysUser::getUsername, username)
+                    .eq(SysUser::getStatus, 1)
         );
         if(user == null)
             return Result.fail(ResultCode.USER_NOT_EXIST);

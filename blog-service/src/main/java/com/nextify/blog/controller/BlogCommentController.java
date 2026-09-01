@@ -2,6 +2,7 @@ package com.nextify.blog.controller;
 
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.annotaion.PublicApi;
+import com.nextify.blog.common.annotaion.RequirePermission;
 import com.nextify.blog.entity.BlogComment;
 import com.nextify.blog.service.BlogCommentService;
 import com.nextify.blog.utils.IPUtils;
@@ -55,11 +56,13 @@ public class BlogCommentController {
      * 审核评论
      * @return
      */
+    @RequirePermission("content:comment:audit")
     @PutMapping("/review")
     public Result<Boolean> reviewComment(@RequestParam Long commentId, @RequestParam Integer status){
         return Result.success(commentService.updateStatus(commentId, status));
     }
 
+    @RequirePermission("content:comment:delete")
     @DeleteMapping("/delete")
     public Result<Boolean> deleteComment(@RequestParam Long commentId){
         return Result.success(commentService.deleteCommentById(commentId));

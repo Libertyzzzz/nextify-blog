@@ -1,13 +1,10 @@
 package com.nextify.blog.controller.admin;
 
-import cn.hutool.dfa.SensitiveUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.dto.SensitiveWordAddDto;
 import com.nextify.blog.dto.SensitiveWordQueryDto;
 import com.nextify.blog.entity.SensitiveWord;
-import com.nextify.blog.mapper.SensitiveWordMapper;
 import com.nextify.blog.service.SensitiveWordService;
 import com.nextify.blog.utils.SensitiveWordFilter;
 import org.springframework.beans.factory.annotation.Autowired;

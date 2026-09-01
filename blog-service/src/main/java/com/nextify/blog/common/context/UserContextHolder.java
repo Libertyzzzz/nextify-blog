@@ -1,30 +1,30 @@
 package com.nextify.blog.common.context;
 
-/**
- * 当前登录用户信息上下文
- */
-public class UserContextHolder {
-    private static final ThreadLocal<Long> USER_ID_HOLDER = new ThreadLocal<>();
+import com.nextify.blog.dto.UserPermissionInfo;
 
-    /**
-     * 设置当前用户ID
-     */
+public class UserContextHolder {
+
+    private static final ThreadLocal<Long> USER_ID_HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<UserPermissionInfo> PERMISSION_INFO_HOLDER = new ThreadLocal<>();
+
     public static void setUserId(Long userId) {
         USER_ID_HOLDER.set(userId);
     }
 
-    /**
-     * 获取当前用户ID
-     */
     public static Long getUserId() {
         return USER_ID_HOLDER.get();
     }
 
-    /**
-     * 清除上下文，防止内存泄漏
-     * 必须在请求结束后的 finally 块调用
-     */
+    public static void setPermissionInfo(UserPermissionInfo info) {
+        PERMISSION_INFO_HOLDER.set(info);
+    }
+
+    public static UserPermissionInfo getPermissionInfo() {
+        return PERMISSION_INFO_HOLDER.get();
+    }
+
     public static void remove() {
         USER_ID_HOLDER.remove();
+        PERMISSION_INFO_HOLDER.remove();
     }
 }

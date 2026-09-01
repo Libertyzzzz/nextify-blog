@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 系统管理员实体类
+ * 系统用户实体类
  * 对应数据库表 sys_user
  */
 @Data
@@ -34,8 +34,15 @@ public class SysUser implements Serializable {
     /** 联系邮箱 */
     private String email;
 
+    private String phone;
+
+    private Integer gender;
+
     /** 个人格言 */
     private String motto;
+
+    /** 账号状态 1=启用 0=禁用 */
+    private Integer status;
 
     /** 创建时间 */
     @TableField(fill = FieldFill.INSERT)
