@@ -10,13 +10,17 @@ import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.mapper.SysUserMapper;
 import com.nextify.blog.service.RoleService;
 import com.nextify.blog.service.SysUserService;
+import com.nextify.blog.vo.SysUserVO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -59,7 +63,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public Page<SysUser> listUsersPage(int current, int size, String keyword, Integer status) {
+    public Page<SysUserVO> listUsersPage(int current, int size, String keyword, Integer status) {
         Page<SysUser> page = new Page<>(current, size);
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
 
@@ -77,9 +81,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         wrapper.orderByDesc(SysUser::getCreateTime);
 
-        Page<SysUser> result = userMapper.selectPage(page, wrapper);
-        result.getRecords().forEach(u -> u.setPassword(null));
-        return result;
+        Page<SysUser> pageResult = userMapper.selectPage(page, wrapper);
+        List<SysUser> data = pageResult.getRecords();
+        List<SysUserVO> convertData = data.stream()
+                .map(item -> {
+                    SysUserVO curr = new SysUserVO();
+                    BeanUtils.copyProperties(item, curr);
+                    curr.setUserId(String.valueOf(item.getUserId()));
+                    return curr;
+                })
+                    .toList();
+        Page<SysUserVO> res = new Page<>(current, size, pageResult.getTotal());
+        res.setRecords(convertData);
+        return res;
     }
 
     @Override

@@ -137,11 +137,11 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<SysRole> getUserRoles(Long userId) {
+    public List<SysRole> getUserRoles(String userId) {
         if (userId == null) return Collections.emptyList();
 
         List<SysUserRole> userRoles = userRoleMapper.selectList(
-            new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId));
+            new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, Long.parseLong(userId)));
         if (userRoles.isEmpty()) return Collections.emptyList();
 
         List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());

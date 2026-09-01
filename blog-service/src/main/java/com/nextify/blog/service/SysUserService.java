@@ -5,6 +5,7 @@ import com.nextify.blog.dto.AddUserDto;
 import com.nextify.blog.dto.SysUserSaveDto;
 import com.nextify.blog.dto.UpdateUserDto;
 import com.nextify.blog.entity.SysUser;
+import com.nextify.blog.vo.SysUserVO;
 
 public interface SysUserService {
 
@@ -13,7 +14,7 @@ public interface SysUserService {
 
     SysUser findByUserId(Long userId);
 
-    Page<SysUser> listUsersPage(int current, int size, String keyword, Integer status);
+    Page<SysUserVO> listUsersPage(int current, int size, String keyword, Integer status);
 
     SysUser createUser(AddUserDto dto);
 

@@ -9,6 +9,7 @@ import com.nextify.blog.dto.SysUserSaveDto;
 import com.nextify.blog.dto.UpdateUserDto;
 import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.service.SysUserService;
+import com.nextify.blog.vo.SysUserVO;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,12 +35,12 @@ public class SysUserController {
 
     @RequirePermission("system:user")
     @GetMapping("/page")
-    public Result<Page<SysUser>> page(
+    public Result<Page<SysUserVO>> page(
             @RequestParam(defaultValue = "1") int current,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer status) {
-        Page<SysUser> page = sysUserService.listUsersPage(current, size, keyword, status);
+        Page<SysUserVO> page = sysUserService.listUsersPage(current, size, keyword, status);
         return Result.success(page);
     }
 

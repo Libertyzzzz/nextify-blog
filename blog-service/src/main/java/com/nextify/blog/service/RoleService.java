@@ -59,7 +59,7 @@ public interface RoleService {
     /**
      * 获取用户的角色列表
      */
-    List<SysRole> getUserRoles(Long userId);
+    List<SysRole> getUserRoles(String userId);
 
     /**
      * 为角色分配权限

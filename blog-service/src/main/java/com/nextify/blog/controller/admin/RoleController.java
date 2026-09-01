@@ -105,7 +105,7 @@ public class RoleController {
      */
     @RequirePermission("system:user:edit")
     @GetMapping("/user/{userId}")
-    public Result<List<SysRole>> getUserRoles(@PathVariable Long userId) {
+    public Result<List<SysRole>> getUserRoles(@PathVariable String userId) {
         List<SysRole> roles = roleService.getUserRoles(userId);
         return Result.success(roles);
     }
