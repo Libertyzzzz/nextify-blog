@@ -21,6 +21,8 @@ public class SysUserVO {
 
     private Integer gender;
 
+    private Integer status;
+
     private LocalDateTime createTime;
 
 

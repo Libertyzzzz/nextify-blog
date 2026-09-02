@@ -22,6 +22,7 @@ public enum ResultCode {
     VALIDATE_FAILED(400, "参数检验失败"),
     NOT_FOUND(404, "资源不存在"),
     USER_NOT_EXIST(1001, "用户不存在"),
+    USER_FORBIDDEN(1008,"您已被禁止登陆"),
     PASSWORD_ERROR(1002, "密码错误"),
     TOKEN_INVALID(1003, "Token无效"),
     MAX_EXPIRED(1004, "Token已过期，请重新登录"),

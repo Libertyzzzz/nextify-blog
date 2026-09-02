@@ -78,6 +78,8 @@ public class LoginController {
         );
         if(user == null)
             return Result.fail(ResultCode.USER_NOT_EXIST);
+        if(user.getStatus() == 0)
+            return Result.fail(ResultCode.USER_FORBIDDEN);
         // 2. 校验用户是否存在及密码是否匹配
         if (!passwordEncoder.matches(password, user.getPassword())) {
             return Result.fail(ResultCode.PASSWORD_ERROR);
