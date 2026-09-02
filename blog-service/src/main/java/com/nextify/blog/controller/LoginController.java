@@ -74,7 +74,7 @@ public class LoginController {
         SysUser user = sysUserMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>()
                     .eq(SysUser::getUsername, username)
-                    .eq(SysUser::getStatus, 1)
+                    //.eq(SysUser::getStatus, 1)
         );
         if(user == null)
             return Result.fail(ResultCode.USER_NOT_EXIST);

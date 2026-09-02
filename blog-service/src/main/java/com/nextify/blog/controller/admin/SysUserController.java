@@ -11,6 +11,8 @@ import com.nextify.blog.entity.SysUser;
 import com.nextify.blog.service.SysUserService;
 import com.nextify.blog.vo.SysUserVO;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -52,10 +54,10 @@ public class SysUserController {
     }
 
     @RequirePermission("system:user:edit")
-    @PutMapping("/{id}")
-    public Result<SysUser> update(@PathVariable Long id,
+    @PutMapping("/{userId}")
+    public Result<SysUser> update(@PathVariable @NotNull String userId,
                                   @Valid @RequestBody UpdateUserDto dto) {
-        SysUser user = sysUserService.updateUser(id, dto);
+        SysUser user = sysUserService.updateUser(Long.parseLong(userId), dto);
         return Result.success(user);
     }
 

@@ -128,7 +128,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUser updateUser(Long userId, UpdateUserDto dto) {
-        SysUser existing = userMapper.selectById(userId);
+        SysUser existing = userMapper.selectOne(
+            new LambdaQueryWrapper<SysUser>().
+                eq(SysUser::getUserId, userId)
+        );
         if (existing == null) {
             throw new IllegalArgumentException("用户不存在: " + userId);
         }

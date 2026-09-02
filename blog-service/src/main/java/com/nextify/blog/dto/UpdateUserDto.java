@@ -11,6 +11,8 @@ public class UpdateUserDto {
     @Size(max = 32, message = "昵称长度不能超过32")
     private String nickname;
 
+    private Integer id;
+
     private Integer gender;
 
     private String email;
