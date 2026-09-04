@@ -19,6 +19,7 @@ public class BlogArticle {
     private String subtitle;
     private String summary;
     private String content;
+    private String author;
 
     @TableField("content_html")
     private String contentHtml;

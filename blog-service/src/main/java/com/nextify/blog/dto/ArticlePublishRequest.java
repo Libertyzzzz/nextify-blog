@@ -12,6 +12,7 @@ public class ArticlePublishRequest {
     private String title;
     private String subtitle;
     private String summary;
+    private String author;
     @NotBlank(message = "内容不能为空")
     private String content;
     private String contentHtml;

@@ -11,6 +11,7 @@ public class ArticleListItemVO {
     private String title;
     private String subtitle;
     private String summary;
+    private String author;
     private String coverImg;
     private Integer cardStyle;
     private Integer viewCount;

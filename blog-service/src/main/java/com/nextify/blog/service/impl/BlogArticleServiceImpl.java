@@ -63,6 +63,7 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
             vo.setTitle(article.getTitle());
             vo.setSubtitle(article.getSubtitle());
             vo.setSummary(article.getSummary());
+            vo.setAuthor(article.getAuthor());
             vo.setCoverImg(article.getCoverImg());
             vo.setCardStyle(article.getCardStyle());
             vo.setViewCount(article.getViewCount());
@@ -103,6 +104,7 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
             vo.setTitle(article.getTitle());
             vo.setSubtitle(article.getSubtitle());
             vo.setSummary(article.getSummary());
+            vo.setAuthor(article.getAuthor());
             vo.setCoverImg(article.getCoverImg());
             vo.setCardStyle(article.getCardStyle());
             vo.setViewCount(article.getViewCount());

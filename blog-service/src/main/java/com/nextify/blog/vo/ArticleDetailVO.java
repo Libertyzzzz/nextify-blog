@@ -11,6 +11,7 @@ public class ArticleDetailVO {
     private String title;
     private String subtitle;
     private String summary;
+    private String author;
     private String content;
     private String contentHtml;
     private String renderContent;
