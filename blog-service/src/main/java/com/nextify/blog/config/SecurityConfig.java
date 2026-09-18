@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(publicApiRequestMatcher).permitAll()
                         .requestMatchers("/admin/role/user/permissions").authenticated()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        //.requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

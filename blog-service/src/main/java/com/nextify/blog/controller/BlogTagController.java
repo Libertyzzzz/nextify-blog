@@ -64,7 +64,7 @@ public class BlogTagController {
      * 新增标签
      * POST /tags
      */
-    @RequirePermission("content:tag:add")
+    @RequirePermission("dashboard:tag:add")
     @PostMapping
     public Result<Long> addTag(@Valid @RequestBody BlogTagAddRequest request) {
         return Result.success(tagService.addTag(request));
@@ -74,7 +74,7 @@ public class BlogTagController {
      * 更新标签
      * PUT /tags/{id}
      */
-    @RequirePermission("content:tag:edit")
+    @RequirePermission("dashboard:tag:edit")
     @PutMapping("/{id}")
     public Result<Void> updateTag(@PathVariable Long id, @Valid @RequestBody BlogTagUpdateRequest request) {
         tagService.updateTag(id, request);
@@ -85,7 +85,7 @@ public class BlogTagController {
      * 删除标签
      * DELETE /tags/{id}
      */
-    @RequirePermission("content:tag:delete")
+    @RequirePermission("dashboard:tag:delete")
     @DeleteMapping("/{id}")
     public Result<Void> deleteTag(@PathVariable Long id) {
         tagService.deleteTag(id);

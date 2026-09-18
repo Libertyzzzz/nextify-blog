@@ -57,7 +57,7 @@ public class BlogCategoryController {
      * 新增分类
      * POST /categories
      */
-    @RequirePermission("content:category:add")
+    @RequirePermission("dashboard:category:add")
     @PostMapping
     public Result<Long> addCategory(@Valid @RequestBody BlogCategoryAddRequest request) {
         return Result.success(blogCategoryService.addCategory(request));
@@ -67,7 +67,7 @@ public class BlogCategoryController {
      * 更新分类
      * PUT /categories/{id}
      */
-    @RequirePermission("content:category:edit")
+    @RequirePermission("dashboard:category:edit")
     @PutMapping("/{id}")
     public Result<Void> updateCategory(@PathVariable Long id, @Valid @RequestBody BlogCategoryUpdateRequest request) {
         blogCategoryService.updateCategory(id, request);
@@ -78,7 +78,7 @@ public class BlogCategoryController {
      * 删除分类
      * DELETE /categories/{id}
      */
-    @RequirePermission("content:category:delete")
+    @RequirePermission("dashboard:category:delete")
     @DeleteMapping("/{id}")
     public Result<Void> deleteCategory(@PathVariable Long id) {
         blogCategoryService.deleteCategory(id);

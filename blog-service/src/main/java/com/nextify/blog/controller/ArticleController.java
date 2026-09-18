@@ -46,19 +46,19 @@ public class ArticleController {
         return Result.success(articleService.getArticleDetail(id, status));
     }
 
-    @RequirePermission("content:article:add")
+    @RequirePermission("dashboard:article:add")
     @PostMapping("/admin/articles")
     public Result<Long> publish(@Validated @RequestBody ArticlePublishRequest request) {
         return Result.success(articleService.publishArticle(request));
     }
 
-    @RequirePermission("content:article:edit")
+    @RequirePermission("dashboard:article:edit")
     @PutMapping("/admin/articles/{id}")
     public Result<Long> update(@PathVariable Long id, @Validated @RequestBody ArticlePublishRequest request) {
         return Result.success(articleService.updateArticle(id, request));
     }
 
-    @RequirePermission("content:article:delete")
+    @RequirePermission("dashboard:article:delete")
     @DeleteMapping("/admin/articles/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         articleService.deleteArticle(id);

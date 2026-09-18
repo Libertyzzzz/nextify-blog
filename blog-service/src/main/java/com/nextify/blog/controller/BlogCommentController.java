@@ -56,13 +56,13 @@ public class BlogCommentController {
      * 审核评论
      * @return
      */
-    @RequirePermission("content:comment:audit")
+    @RequirePermission("dashboard:comment:audit")
     @PutMapping("/review")
     public Result<Boolean> reviewComment(@RequestParam Long commentId, @RequestParam Integer status){
         return Result.success(commentService.updateStatus(commentId, status));
     }
 
-    @RequirePermission("content:comment:delete")
+    @RequirePermission("dashboard:comment:delete")
     @DeleteMapping("/delete")
     public Result<Boolean> deleteComment(@RequestParam Long commentId){
         return Result.success(commentService.deleteCommentById(commentId));
