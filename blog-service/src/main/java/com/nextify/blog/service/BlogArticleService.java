@@ -8,6 +8,8 @@ import com.nextify.blog.vo.ArticleDetailVO;
 import com.nextify.blog.vo.ArticleListItemVO;
 import com.nextify.blog.vo.ArticleTagDetailVO;
 
+import java.util.List;
+
 public interface BlogArticleService extends IService<BlogArticle> {
 
     Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize, Integer status);
@@ -30,4 +32,8 @@ public interface BlogArticleService extends IService<BlogArticle> {
     void deleteArticle(Long id);
 
     ArticleTagDetailVO getArticleTagDetail(Long id);
+
+    List<ArticleListItemVO> getTrending(int limit);
+
+    List<ArticleListItemVO> getFeatured(int limit, int offset);
 }

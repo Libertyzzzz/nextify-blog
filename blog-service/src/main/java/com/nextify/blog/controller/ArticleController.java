@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping
 public class ArticleController {
@@ -37,6 +39,19 @@ public class ArticleController {
                                                           @RequestParam(defaultValue = "1") long pageNum,
                                                           @RequestParam(defaultValue = "10") long pageSize) {
         return Result.success(articleService.searchArticles(keyword, pageNum, pageSize));
+    }
+
+    @PublicApi
+    @GetMapping("/articles/trending")
+    public Result<List<ArticleListItemVO>> getTrending(@RequestParam(defaultValue = "6") int limit) {
+        return Result.success(articleService.getTrending(Math.min(limit, 20)));
+    }
+
+    @PublicApi
+    @GetMapping("/articles/featured")
+    public Result<List<ArticleListItemVO>> getFeatured(@RequestParam(defaultValue = "5") int limit,
+                                                       @RequestParam(defaultValue = "0") int offset) {
+        return Result.success(articleService.getFeatured(Math.min(limit, 20), Math.max(offset, 0)));
     }
 
     @PublicApi

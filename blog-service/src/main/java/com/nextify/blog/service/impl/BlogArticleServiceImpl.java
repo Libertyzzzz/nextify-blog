@@ -8,11 +8,13 @@ import com.nextify.blog.dto.ArticlePublishRequest;
 import com.nextify.blog.entity.BlogArticle;
 import com.nextify.blog.entity.BlogArticleTag;
 import com.nextify.blog.entity.BlogCategory;
+import com.nextify.blog.entity.BlogComment;
 import com.nextify.blog.entity.BlogTag;
 import com.nextify.blog.enums.PublishStatusEnum;
 import com.nextify.blog.mapper.BlogArticleMapper;
 import com.nextify.blog.mapper.BlogArticleTagMapper;
 import com.nextify.blog.mapper.BlogCategoryMapper;
+import com.nextify.blog.mapper.BlogCommentMapper;
 import com.nextify.blog.mapper.BlogTagMapper;
 import com.nextify.blog.service.BlogArticleService;
 import com.nextify.blog.service.BlogTagService;
@@ -28,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +47,8 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     private BlogCategoryMapper categoryMapper;
     @Autowired
     private BlogTagMapper tagMapper;
+    @Autowired
+    private BlogCommentMapper commentMapper;
     @Resource
     private BlogTagService tagService;
     @Resource
@@ -53,6 +59,7 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
         Page<BlogArticle> page = new Page<>(pageNum, pageSize);
         Page<BlogArticle> articlePage = this.page(page, new LambdaQueryWrapper<BlogArticle>()
                 .eq(BlogArticle::getStatus, null == status ? PublishStatusEnum.PUBLISHED.getCode() : status)
+                .eq(BlogArticle::getIsTop, 0)
                 .orderByDesc(BlogArticle::getIsTop)
                 .orderByDesc(BlogArticle::getCreateTime));
         Map<Long, String> categoryMap = buildCategoryMap(articlePage.getRecords());
@@ -273,5 +280,94 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
             result.computeIfAbsent(rel.getArticleId(), k -> new ArrayList<>()).add(tagName);
         }
         return result;
+    }
+
+    @Override
+    public List<ArticleListItemVO> getTrending(int limit) {
+        LambdaQueryWrapper<BlogArticle> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogArticle::getStatus, PublishStatusEnum.PUBLISHED.getCode())
+               .isNotNull(BlogArticle::getCreateTime);
+        List<BlogArticle> allArticles = this.list(wrapper);
+
+        Map<Long, Long> commentCountMap = allArticles.stream()
+                .collect(Collectors.toMap(
+                        BlogArticle::getId,
+                        article -> commentMapper.selectCount(
+                                new LambdaQueryWrapper<BlogComment>()
+                                        .eq(BlogComment::getArticleId, article.getId())
+                                        .eq(BlogComment::getStatus, 1)
+                        )
+                ));
+
+        LocalDateTime now = LocalDateTime.now();
+        List<BlogArticle> sorted = allArticles.stream()
+                .sorted((a, b) -> {
+                    double scoreA = calcTrendingScore(a, commentCountMap.getOrDefault(a.getId(), 0L), now);
+                    double scoreB = calcTrendingScore(b, commentCountMap.getOrDefault(b.getId(), 0L), now);
+                    return Double.compare(scoreB, scoreA);
+                })
+                .limit(limit)
+                .collect(Collectors.toList());
+
+        Map<Long, String> categoryMap = buildCategoryMap(sorted);
+        Map<Long, List<String>> articleTags = buildArticleTagNameMap(sorted);
+
+        return sorted.stream().map(article -> {
+            ArticleListItemVO vo = new ArticleListItemVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setSubtitle(article.getSubtitle());
+            vo.setSummary(article.getSummary());
+            vo.setAuthor(article.getAuthor());
+            vo.setCoverImg(article.getCoverImg());
+            vo.setCardStyle(article.getCardStyle());
+            vo.setViewCount(article.getViewCount());
+            vo.setIsTop(article.getIsTop());
+            vo.setStatus(article.getStatus());
+            vo.setCreateTime(article.getCreateTime());
+            vo.setCategoryId(article.getCategoryId());
+            vo.setCategoryName(categoryMap.get(article.getCategoryId()));
+            vo.setTagNames(articleTags.getOrDefault(article.getId(), new ArrayList<>()));
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    private double calcTrendingScore(BlogArticle article, long commentCount, LocalDateTime now) {
+        int views = article.getViewCount() == null ? 0 : article.getViewCount();
+        long daysBetween = ChronoUnit.DAYS.between(article.getCreateTime(), now);
+        double timeFactor = Math.pow(daysBetween + 2, 1.2);
+        return (views * 0.05 + commentCount * 4.0) / timeFactor;
+    }
+
+    @Override
+    public List<ArticleListItemVO> getFeatured(int limit, int offset) {
+        LambdaQueryWrapper<BlogArticle> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogArticle::getStatus, PublishStatusEnum.PUBLISHED.getCode())
+               .orderByDesc(BlogArticle::getIsTop)
+               .orderByDesc(BlogArticle::getCreateTime)
+               .last("LIMIT " + offset + ", " + limit);
+        List<BlogArticle> articles = this.list(wrapper);
+
+        Map<Long, String> categoryMap = buildCategoryMap(articles);
+        Map<Long, List<String>> articleTags = buildArticleTagNameMap(articles);
+
+        return articles.stream().map(article -> {
+            ArticleListItemVO vo = new ArticleListItemVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setSubtitle(article.getSubtitle());
+            vo.setSummary(article.getSummary());
+            vo.setAuthor(article.getAuthor());
+            vo.setCoverImg(article.getCoverImg());
+            vo.setCardStyle(article.getCardStyle());
+            vo.setViewCount(article.getViewCount());
+            vo.setIsTop(article.getIsTop());
+            vo.setStatus(article.getStatus());
+            vo.setCreateTime(article.getCreateTime());
+            vo.setCategoryId(article.getCategoryId());
+            vo.setCategoryName(categoryMap.get(article.getCategoryId()));
+            vo.setTagNames(articleTags.getOrDefault(article.getId(), new ArrayList<>()));
+            return vo;
+        }).collect(Collectors.toList());
     }
 }
