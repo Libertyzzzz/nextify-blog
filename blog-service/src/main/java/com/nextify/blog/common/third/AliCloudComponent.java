@@ -21,6 +21,9 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -122,43 +125,40 @@ public class AliCloudComponent {
         }
     }
 
-    public List<TextEmbeddingResultItem> textToEmbedding(String text){
+    public List<TextEmbeddingResultItem> textToEmbedding(String text) {
+        if (!StringUtils.hasText(text)) {
+            return Collections.emptyList();
+        }
+        return textToEmbeddingBatch(Collections.singletonList(text));
+    }
 
+    public List<TextEmbeddingResultItem> textToEmbeddingBatch(List<String> texts) {
+        if (CollectionUtils.isEmpty(texts)) {
+            return Collections.emptyList();
+        }
         try {
-            // TextEmbedding gen = new TextEmbedding(aiAssistantProperty.getBaseUrl());
+            TextEmbeddingParam.TextEmbeddingParamBuilder<?, ?> builder = TextEmbeddingParam.builder()
+                    .model(aiAssistantProperty.getEmbeddingModel())
+                    .texts(texts);
 
-            // 构建请求参数
-            TextEmbeddingParam param = TextEmbeddingParam
-                .builder()
-                //.apiKey(aiAssistantProperty.getApiKey())
-                .model(aiAssistantProperty.getEmbeddingModel())
-                // 输入文本
-                .texts(Collections.singleton(text))
-                .build();
+            if (StringUtils.hasText(aiAssistantProperty.getApiKey())) {
+                builder.apiKey(aiAssistantProperty.getApiKey());
+            }
 
             TextEmbedding textEmbedding = new TextEmbedding();
-            TextEmbeddingResult textEmbeddingResult = textEmbedding.call(param);
+            TextEmbeddingResult textEmbeddingResult = textEmbedding.call(builder.build());
 
-            return  Optional.ofNullable(textEmbeddingResult)
-                .map(TextEmbeddingResult::getOutput)
-                .map(TextEmbeddingOutput::getEmbeddings)
-                .orElse(Collections.emptyList());
-
+            return Optional.ofNullable(textEmbeddingResult)
+                    .map(TextEmbeddingResult::getOutput)
+                    .map(TextEmbeddingOutput::getEmbeddings)
+                    .orElse(Collections.emptyList());
 
         } catch (NoApiKeyException e) {
             log.error("AliCloud No API Key Exception: {}", e.getMessage());
             throw new BusinessException(ResultCode.ALIClOUD_NO_API.getCode(), ResultCode.ALIClOUD_NO_API.getMessage());
-        }catch (ApiException e){
-            log.error("Api exception: {}", e.getMessage());
+        } catch (ApiException e) {
+            log.error("Api exception: {}", e.getMessage(), e);
             throw new BusinessException(ResultCode.ALIClOUD_API_EXCEPTION.getCode(), ResultCode.ALIClOUD_API_EXCEPTION.getMessage());
-
         }
-
     }
-
-    public String   embeddingBatch(List<String> texts){
-        return "";
-    }
-
-
 }

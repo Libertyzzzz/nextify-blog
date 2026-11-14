@@ -3,8 +3,6 @@ package com.nextify.blog.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.annotaion.PublicApi;
-import com.nextify.blog.common.annotaion.RequirePermission;
-import com.nextify.blog.dto.ArticlePublishRequest;
 import com.nextify.blog.dto.ArticleQueryRequest;
 import com.nextify.blog.service.BlogArticleService;
 import com.nextify.blog.vo.ArticleCollectionVO;
@@ -59,25 +57,6 @@ public class ArticleController {
     public Result<ArticleDetailVO> getDetail(@PathVariable Long id,
                                               @RequestParam(defaultValue = "1") Integer status ) {
         return Result.success(articleService.getArticleDetail(id, status));
-    }
-
-    @RequirePermission("dashboard:article:add")
-    @PostMapping("/admin/articles")
-    public Result<Long> publish(@Validated @RequestBody ArticlePublishRequest request) {
-        return Result.success(articleService.publishArticle(request));
-    }
-
-    @RequirePermission("dashboard:article:edit")
-    @PutMapping("/admin/articles/{id}")
-    public Result<Long> update(@PathVariable Long id, @Validated @RequestBody ArticlePublishRequest request) {
-        return Result.success(articleService.updateArticle(id, request));
-    }
-
-    @RequirePermission("dashboard:article:delete")
-    @DeleteMapping("/admin/articles/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        articleService.deleteArticle(id);
-        return Result.success();
     }
 
     @PublicApi

@@ -1,5 +1,6 @@
 package com.nextify.blog.controller;
 
+import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.entity.BlogArticle;
 import com.nextify.blog.service.BlogArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,12 @@ public class SitemapController {
     @Autowired
     private BlogArticleService articleService;
 
-    @GetMapping(value = "/sitemap.xml", produces = "application/xml")
+    @PublicApi
+
+    @GetMapping(value = "/sitemap.xml", produces = "application/xml;charset=utf-8")
     public String getSitemap() {
-        List<BlogArticle> articles = articleService.list(); // 获取所有已发布文章
+        // Only fetch published articles (status = 1)
+        List<BlogArticle> articles = articleService.lambdaQuery().eq(BlogArticle::getStatus, 1).list();
         StringBuilder xml = new StringBuilder();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -28,13 +32,18 @@ public class SitemapController {
         xml.append("  <url>\n");
         xml.append("    <loc>https://yourblog.com/</loc>\n");
         xml.append("    <priority>1.0</priority>\n");
+        xml.append("    <changefreq>daily</changefreq>\n");
         xml.append("  </url>\n");
 
         // 文章详情页
         for (BlogArticle article : articles) {
             xml.append("  <url>\n");
             xml.append("    <loc>https://yourblog.com/article/").append(article.getId()).append("</loc>\n");
-            xml.append("    <lastmod>").append(sdf.format(article.getUpdateTime())).append("</lastmod>\n");
+            if (article.getUpdateTime() != null) {
+                xml.append("    <lastmod>").append(sdf.format(article.getUpdateTime())).append("</lastmod>\n");
+            } else if (article.getCreateTime() != null) {
+                xml.append("    <lastmod>").append(sdf.format(article.getCreateTime())).append("</lastmod>\n");
+            }
             xml.append("    <priority>0.8</priority>\n");
             xml.append("  </url>\n");
         }

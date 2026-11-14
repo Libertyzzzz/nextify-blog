@@ -37,7 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogArticle> implements BlogArticleService {
 
@@ -53,6 +55,8 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
     private BlogTagService tagService;
     @Resource
     private ImageService imageService;
+    @Resource
+    private com.nextify.blog.service.KnowledgeIndexService knowledgeIndexService;
 
     @Override
     public Page<ArticleListItemVO> getHomeArticles(long pageNum, long pageSize, Integer status) {
@@ -180,6 +184,13 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
             imageService.updateImageUsage(request.getImageIds(), article.getId());
         }
 
+        // 索引到 RAG 知识库
+        try {
+            knowledgeIndexService.indexArticle(article.getId());
+        } catch (Exception e) {
+            log.error("发布文章索引到知识库失败: articleId={}, err={}", article.getId(), e.getMessage());
+        }
+
         return article.getId();
     }
 
@@ -214,6 +225,13 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
             imageService.updateImageUsage(request.getImageIds(), id);
         }
 
+        // 更新 RAG 知识库索引
+        try {
+            knowledgeIndexService.indexArticle(id);
+        } catch (Exception e) {
+            log.error("更新文章知识库索引失败: articleId={}, err={}", id, e.getMessage());
+        }
+
         return id;
     }
 
@@ -227,6 +245,13 @@ public class BlogArticleServiceImpl extends ServiceImpl<BlogArticleMapper, BlogA
         article.setStatus(-1);
         this.updateById(article);
         articleTagMapper.delete(new QueryWrapper<BlogArticleTag>().eq("article_id", id));
+
+        // 从知识库中移除分片
+        try {
+            knowledgeIndexService.removeArticle(id);
+        } catch (Exception e) {
+            log.error("从知识库移除文章分片失败: articleId={}, err={}", id, e.getMessage());
+        }
     }
 
     @Override

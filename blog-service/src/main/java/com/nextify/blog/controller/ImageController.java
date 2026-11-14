@@ -1,4 +1,4 @@
-package com.nextify.blog.controller.admin;
+package com.nextify.blog.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;

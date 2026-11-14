@@ -27,5 +27,10 @@ public interface KnowledgeIndexService {
      * 刷新检索缓存（新增/删除操作后调用）
      */
     void refreshCache();
+
+    /**
+     * 获取知识库状态与统计（含每篇文章的分块数）
+     */
+    java.util.Map<String, Object> getKnowledgeStats();
 }
 

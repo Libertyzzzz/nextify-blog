@@ -13,6 +13,11 @@ public interface RAGRetrieverService {
     List<KnowledgeSnippet> retrieve(String query, int topK);
 
     /**
+     * 刷新知识库向量缓存
+     */
+    void refreshCache();
+
+    /**
      * 检索结果记录
      */
     record KnowledgeSnippet(

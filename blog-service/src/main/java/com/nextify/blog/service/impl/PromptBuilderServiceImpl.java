@@ -38,6 +38,9 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
     @Resource // 注入 ContentService
     private ContentService contentService;
 
+    @Resource
+    private com.nextify.blog.service.RAGRetrieverService ragRetrieverService;
+
     // calculate token
     private int countTokens(String text) {
         return text != null ? ENCODING.countTokens(text) : 0;
@@ -47,9 +50,17 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
     public List<LlmMessage> buildPromptMessages(Long userId, String conversationId, AgentChatRequest request) {
         List<LlmMessage> messages = new ArrayList<>();
 
-        // 1. 添加 System Prompt
+        // 1. 添加 System Prompt（附带 RAG 检索增强）
         String systemPromptText = promptService.getSystemPrompt(request.getContext() != null ? request.getContext().getKey() : "generic");
-        if (systemPromptText != null && !systemPromptText.isEmpty()) {
+        String ragContext = buildRAGContext(request.getMessage());
+        if (ragContext != null && !ragContext.isEmpty()) {
+            String enhancedSystemPrompt = (systemPromptText != null ? systemPromptText : "你是一个专业的博客助手。")
+                    + "\n\n## 以下是你可以参考的知识库内容：\n"
+                    + ragContext
+                    + "\n\n**重要**：请优先参考上述知识库内容来回答用户问题。如果知识库中没有相关信息，请诚实告知用户。";
+            messages.add(new LlmMessage(AgentRoleEnum.SYSTEM.getValue(), enhancedSystemPrompt));
+            systemPromptText = enhancedSystemPrompt;
+        } else if (systemPromptText != null && !systemPromptText.isEmpty()) {
             messages.add(new LlmMessage(AgentRoleEnum.SYSTEM.getValue(), systemPromptText));
         }
 
@@ -118,5 +129,34 @@ public class PromptBuilderServiceImpl implements PromptBuilderService {
         messages.add(new LlmMessage(AgentRoleEnum.USER.getValue(), userPromptContentBuilder.toString()));
 
         return messages;
+    }
+
+    /**
+     * 构建 RAG 知识库上下文
+     * @param userQuery 用户提问
+     * @return 格式化的知识库上下文文本（检索失败时降级返回 null）
+     */
+    private String buildRAGContext(String userQuery) {
+        if (userQuery == null || userQuery.isBlank()) {
+            return null;
+        }
+        try {
+            // 从知识库检索最相关的 5 个片段
+            List<com.nextify.blog.service.RAGRetrieverService.KnowledgeSnippet> snippets =
+                    ragRetrieverService.retrieve(userQuery, 5);
+            if (snippets == null || snippets.isEmpty()) {
+                return null;
+            }
+
+            StringBuilder context = new StringBuilder();
+            for (com.nextify.blog.service.RAGRetrieverService.KnowledgeSnippet snippet : snippets) {
+                context.append("### 来源：《").append(snippet.articleTitle()).append("》\n")
+                        .append(snippet.content()).append("\n\n");
+            }
+            return context.toString().trim();
+        } catch (Exception e) {
+            // RAG 检索异常降级，不阻断正常问答流程
+            return null;
+        }
     }
 }

@@ -22,32 +22,57 @@ import java.util.Optional;
 @Slf4j
 public class EmbeddingServiceImpl implements EmbeddingService {
 
+    @Resource
     private AliCloudComponent aliCloudComponent;
+
     @Resource
     private AIAssistantProperty aiAssistantProperty;
 
-
-
-
     @Override
     public List<Float> embed(String text) {
-        List<TextEmbeddingResultItem> textEmbeddingResultItems = aliCloudComponent.textToEmbedding(text);
-        if(CollectionUtils.isEmpty(textEmbeddingResultItems)){
-            log.info("Text to Embedding failed");
-            return List.of();
+        if (!CollectionUtils.isEmpty(Collections.singletonList(text))) {
+            List<List<Float>> batchRes = embedBatch(Collections.singletonList(text));
+            if (!CollectionUtils.isEmpty(batchRes)) {
+                return batchRes.get(0);
+            }
         }
-        List<Double> res = textEmbeddingResultItems.get(0).getEmbedding();
-        if(CollectionUtils.isEmpty(res)){
-            return List.of();
-        }
-        return res.stream()
-            .map(Double::floatValue)
-            .toList();
-
+        return List.of();
     }
 
     @Override
     public List<List<Float>> embedBatch(List<String> texts) {
-        return List.of();
+        if (CollectionUtils.isEmpty(texts)) {
+            return Collections.emptyList();
+        }
+
+        // Dashscope 单批次支持最多 25 条，进行分批处理
+        int batchSize = 25;
+        List<List<Float>> results = new java.util.ArrayList<>(texts.size());
+
+        for (int i = 0; i < texts.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, texts.size());
+            List<String> batch = texts.subList(i, end);
+
+            List<TextEmbeddingResultItem> items = aliCloudComponent.textToEmbeddingBatch(batch);
+            if (CollectionUtils.isEmpty(items)) {
+                log.warn("Text to Embedding batch failed for size={}", batch.size());
+                for (int k = 0; k < batch.size(); k++) {
+                    results.add(Collections.emptyList());
+                }
+                continue;
+            }
+
+            for (TextEmbeddingResultItem item : items) {
+                List<Double> doubleList = item.getEmbedding();
+                if (CollectionUtils.isEmpty(doubleList)) {
+                    results.add(Collections.emptyList());
+                } else {
+                    results.add(doubleList.stream().map(Double::floatValue).toList());
+                }
+            }
+        }
+
+        log.info("Embedding 向量化完成: 输入 {} 条文本，产出 {} 条向量", texts.size(), results.size());
+        return results;
     }
 }

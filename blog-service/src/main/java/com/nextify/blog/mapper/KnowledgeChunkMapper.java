@@ -2,6 +2,7 @@ package com.nextify.blog.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.nextify.blog.entity.KnowledgeChunk;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -53,6 +54,18 @@ public interface KnowledgeChunkMapper extends BaseMapper<KnowledgeChunk> {
     /**
      * 根据文章ID删除所有分片
      */
-    @Select("DELETE FROM knowledge_chunk WHERE article_id = #{articleId}")
-    int deleteByArticleId(@Param("articleId") Long articleId);
+    @Delete("DELETE FROM knowledge_chunk WHERE article_id = #{articleId}")
+    Integer deleteByArticleId(@Param("articleId") Long articleId);
+
+    /**
+     * 按文章分组统计有效切片数量
+     */
+    @Select("SELECT article_id AS articleId, COUNT(*) AS chunkCount FROM knowledge_chunk WHERE status = 1 GROUP BY article_id")
+    List<java.util.Map<String, Object>> countChunksGroupByArticle();
+
+    /**
+     * 统计有效知识分片总数
+     */
+    @Select("SELECT COUNT(*) FROM knowledge_chunk WHERE status = 1")
+    Long countTotalValidChunks();
 }

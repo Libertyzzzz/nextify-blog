@@ -50,7 +50,14 @@ public class RAGRetrieverServiceImpl implements RAGRetrieverService {
 
         // 1. 对用户提问进行向量化
         List<Float> queryEmbedding = embeddingService.embed(query);
+        if (queryEmbedding == null || queryEmbedding.isEmpty()) {
+            log.warn("用户提问向量化结果为空: {}", query);
+            return List.of();
+        }
         float queryNorm = embeddingService.norm(queryEmbedding);
+        if (queryNorm == 0f) {
+            return List.of();
+        }
 
         // 2. 获取所有有效的知识分片
         List<KnowledgeChunk> allChunks = loadAllChunks();
@@ -59,14 +66,25 @@ public class RAGRetrieverServiceImpl implements RAGRetrieverService {
             return List.of();
         }
 
-        // 3.计算余弦相似度
+        // 3. 计算余弦相似度
         List<KnowledgeSnippet> res = new ArrayList<>();
         float[] queryVec = toFloatArray(queryEmbedding);
 
-        for(int i = 0; i < cachedChunks.size(); i++){
-            float similarity = cosineSimilarity(queryVec, cachedEmbeddings.get(i), queryNorm);
-            if(similarity > SIMILARITY_THRESHOLD){
-                KnowledgeChunk chunk = cachedChunks.get(i);
+        List<KnowledgeChunk> chunks = this.cachedChunks;
+        List<float[]> embeddings = this.cachedEmbeddings;
+        if (chunks == null || embeddings == null) {
+            return List.of();
+        }
+
+        int count = Math.min(chunks.size(), embeddings.size());
+        for (int i = 0; i < count; i++) {
+            float[] docVec = embeddings.get(i);
+            if (docVec == null || docVec.length != queryVec.length) {
+                continue;
+            }
+            float similarity = cosineSimilarity(queryVec, docVec, queryNorm);
+            if (similarity > SIMILARITY_THRESHOLD) {
+                KnowledgeChunk chunk = chunks.get(i);
                 res.add(new KnowledgeSnippet(
                     chunk.getArticleId(),
                     chunk.getArticleTitle(),
