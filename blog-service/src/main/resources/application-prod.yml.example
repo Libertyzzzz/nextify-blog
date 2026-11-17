@@ -5,12 +5,25 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
 nextify:
+  site-url: ${SITE_URL:https://nextify.cn}
   jwt:
     secret: ${JWT_SECRET}
-  baidu:
-    api-key: ${BAIDU_API_KEY}
-    secret-key: ${BAIDU_SECRET_KEY}
+  ai-face:
+    baidu-app-id: ${BAIDU_AI_APP_ID}
+    baidu-api-key: ${BAIDU_AI_API_KEY}
+    baidu-secret-key: ${BAIDU_AI_SECRET_KEY}
+  ai-assistant:
+    api-key: ${AI_ASSISTANT_API_KEY}
+    base-url: ${AI_ASSISTANT_BASE_URL}
+    model: ${AI_ASSISTANT_MODEL:qwen-plus}
+    embedding-model: ${AI_ASSISTANT_EMBEDDING_MODEL:qwen3.7-text-embedding}
   upload:
     local-path: /opt/nextify/uploads/
     public-base-url: https://nextify.cn/api

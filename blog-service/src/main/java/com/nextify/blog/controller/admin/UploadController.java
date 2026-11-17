@@ -1,6 +1,7 @@
 package com.nextify.blog.controller.admin;
 
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.RequirePermission;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
@@ -54,6 +55,7 @@ public class UploadController {
     @Value("${nextify.upload.public-base-url:http://localhost:8080/api}")
     private String publicBaseUrl;
 
+    @RequirePermission(value = {"dashboard:media", "dashboard:article:add", "dashboard:article:edit"}, logic = RequirePermission.Logic.OR)
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<Map<String, String>> uploadImage(@RequestPart("file") MultipartFile file) throws IOException {
         String contentType = file.getContentType();

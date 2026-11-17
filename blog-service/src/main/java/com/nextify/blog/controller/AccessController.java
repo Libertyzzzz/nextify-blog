@@ -3,6 +3,7 @@ package com.nextify.blog.controller;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.annotaion.PublicApi;
 import com.nextify.blog.common.annotaion.RateLimiter;
+import com.nextify.blog.common.annotaion.RequirePermission;
 import com.nextify.blog.common.third.AMapComponent;
 import com.nextify.blog.dto.AccessCodeAddRequest;
 import com.nextify.blog.entity.AccessCode;
@@ -38,7 +39,7 @@ public class AccessController {
         return Result.success(accessCodeService.getAccessCodeVo(id));
     }
 
-    @PublicApi
+    @RequirePermission("system:permission")
     @PostMapping()
     public Result<Integer> setAccessCode(@RequestBody AccessCodeAddRequest request){
         return Result.success(accessCodeService.save(request));
@@ -52,7 +53,7 @@ public class AccessController {
     }
 
 
-    @PublicApi
+    @RateLimiter(time = 5, count = 3, message = "请求过于频繁，请稍后再试")
     @GetMapping("/address")
     public Result<String> getAddressInfo(@RequestParam String longitude, String latitude){
 

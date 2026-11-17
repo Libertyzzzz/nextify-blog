@@ -2,7 +2,7 @@ package com.nextify.blog.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
-import com.nextify.blog.common.annotaion.PublicApi;
+import com.nextify.blog.common.annotaion.RequirePermission;
 import com.nextify.blog.dto.ImageDeleteDto;
 import com.nextify.blog.dto.ImageQueryDto;
 import com.nextify.blog.dto.ImageReferenceDto;
@@ -31,7 +31,7 @@ public class ImageController {
      * @param usageType 使用类型
      * @param usageId 业务id
      */
-    @PublicApi
+    @RequirePermission(value = {"dashboard:media", "dashboard:article:add", "dashboard:article:edit"}, logic = RequirePermission.Logic.OR)
     @PostMapping("/upload/with-reference")
     public Result<Map<String, String>> uploadWithReference(
         @RequestParam("file") MultipartFile file,
@@ -44,6 +44,7 @@ public class ImageController {
     /**
      * 查询图片列表
      */
+    @RequirePermission("dashboard:media")
     @GetMapping("/list")
     public Result<Page<ImageInfoVo>> listImages(ImageQueryDto request) {
         return Result.success(imageService.listImages(request));
@@ -52,6 +53,7 @@ public class ImageController {
     /**
      * 查询图片引用信息
      */
+    @RequirePermission("dashboard:media")
     @GetMapping("/reference")
     public Result<List<ImageReferenceVo>> getImageReference(ImageReferenceDto request) {
         return Result.success(imageService.imageReference(request)) ;
@@ -60,6 +62,7 @@ public class ImageController {
     /**
      * 删除图片
      */
+    @RequirePermission("dashboard:media")
     @DeleteMapping("/delete")
     public Result<ImageDeleteResultVo> deleteImage(@RequestBody ImageDeleteDto request) {
         log.info("正在执行批量删除操作, 待删除数量: {}", request.getIds() != null ? request.getIds().size() : 0);
@@ -69,6 +72,7 @@ public class ImageController {
     /**
      * 强制删除
      */
+    @RequirePermission("dashboard:media")
     @DeleteMapping("/force/{imageId}")
     public Result<Void> forceDeleteImage(@PathVariable("imageId") String imageId) {
         imageService.forceDeleteImage(imageId);

@@ -2,6 +2,7 @@ package com.nextify.blog.controller.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextify.blog.common.Result;
+import com.nextify.blog.common.annotaion.RequirePermission;
 import com.nextify.blog.dto.SensitiveWordAddDto;
 import com.nextify.blog.dto.SensitiveWordQueryDto;
 import com.nextify.blog.entity.SensitiveWord;
@@ -23,6 +24,7 @@ public class SensitiveWordController {
     /**
      * 分页查询敏感词
      */
+    @RequirePermission("dashboard:sensitive")
     @GetMapping
     public Result<Page<SensitiveWord>> list(SensitiveWordQueryDto request) {
 
@@ -33,6 +35,7 @@ public class SensitiveWordController {
     /**
      * 添加敏感词
      */
+    @RequirePermission("dashboard:sensitive")
     @PostMapping
     public Result<Void> add(@RequestBody SensitiveWordAddDto request) {
        sensitiveWordService.add(request);
@@ -44,6 +47,7 @@ public class SensitiveWordController {
     /**
      * 删除敏感词
      */
+    @RequirePermission("dashboard:sensitive")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         sensitiveWordService.delete(id);
