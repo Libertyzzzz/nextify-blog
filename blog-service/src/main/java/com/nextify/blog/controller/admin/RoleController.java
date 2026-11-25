@@ -149,7 +149,11 @@ public class RoleController {
      */
     @GetMapping("/user/permissions")
     public Result<UserPermissionInfo> getUserPermissions() {
-        UserPermissionInfo info = roleService.getUserPermissionInfo(UserContextHolder.getUserId());
+        Long userId = UserContextHolder.getUserId();
+        if (userId != null && userId == -999L && UserContextHolder.getPermissionInfo() != null) {
+            return Result.success(UserContextHolder.getPermissionInfo());
+        }
+        UserPermissionInfo info = roleService.getUserPermissionInfo(userId);
         return Result.success(info);
     }
 

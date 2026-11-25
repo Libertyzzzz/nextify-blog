@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nextify.blog.common.Result;
 import com.nextify.blog.common.ResultCode;
 import com.nextify.blog.common.annotaion.PublicApi;
+import com.nextify.blog.common.annotaion.RequirePermission;
 import com.nextify.blog.common.annotaion.RequiredLogin;
 import com.nextify.blog.common.context.UserContextHolder;
 import com.nextify.blog.common.properties.JwtAuthenticationProperty;
@@ -18,9 +19,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -57,6 +60,11 @@ public class LoginController {
     private SysUserService userService;
 
     private static final  String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
+    private static final String PREVIEW_CODE_REDIS_KEY = "PREVIEW_LINK:CODE";
+    private static final String PREVIEW_ENABLED_REDIS_KEY = "PREVIEW_LINK:ENABLED";
+
+    @Value("${nextify.preview.default-code:nx_preview_2026}")
+    private String defaultPreviewCode;
 
     /**
      * 管理员登录
@@ -107,6 +115,94 @@ public class LoginController {
         user.setPassword("******");
 
         return Result.success(data);
+    }
+
+    /**
+     * 专属预览链接静默登录（校验 preview 凭证，签发只读观察员令牌）
+     * POST /api/auth/preview-login
+     */
+    @PublicApi
+    @PostMapping("/preview-login")
+    public Result<?> previewLogin(@RequestBody Map<String, String> params) {
+        String code = params != null ? params.get("code") : null;
+        if (!StringUtils.hasText(code)) {
+            return Result.fail(ResultCode.FORBIDDEN.getCode(), "预览凭证不能为空");
+        }
+
+        String enabledFlag = null;
+        String activeCode = null;
+        try {
+            enabledFlag = redisUtils.get(PREVIEW_ENABLED_REDIS_KEY);
+            activeCode = redisUtils.get(PREVIEW_CODE_REDIS_KEY);
+        } catch (Exception e) {
+            log.warn("读取 Redis 预览链接配置失败，降级使用默认配置: {}", e.getMessage());
+        }
+
+        boolean isEnabled = enabledFlag == null || !"false".equalsIgnoreCase(enabledFlag);
+        if (!isEnabled) {
+            return Result.fail(ResultCode.FORBIDDEN.getCode(), "该预览链接已关闭访问");
+        }
+
+        String expectedCode = StringUtils.hasText(activeCode) ? activeCode : defaultPreviewCode;
+        if (!expectedCode.equals(code.trim())) {
+            return Result.fail(ResultCode.FORBIDDEN.getCode(), "预览链接无效或已过期");
+        }
+
+        Long viewerUserId = -999L;
+        String viewerUsername = "viewer";
+        String accessToken = jwtUtils.createToken(viewerUsername, viewerUserId);
+
+        SysUser viewerUser = new SysUser();
+        viewerUser.setId(viewerUserId);
+        viewerUser.setUsername(viewerUsername);
+        viewerUser.setNickname("只读预览账号");
+        viewerUser.setEmail("viewer@nextify.cn");
+        viewerUser.setMotto("只读预览权限 · 全模块可见");
+        viewerUser.setStatus(1);
+        viewerUser.setPassword("******");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", accessToken);
+        data.put("user", viewerUser);
+        data.put("expire", jwtUtils.getClaimsByToken(accessToken).getExpiration().getTime());
+        return Result.success(data);
+    }
+
+    /**
+     * 获取当前预览链接配置（超管/权限管理专用）
+     * GET /api/auth/preview-link
+     */
+    @RequirePermission("system:permission")
+    @GetMapping("/preview-link")
+    public Result<Map<String, Object>> getPreviewLinkConfig() {
+        String enabledFlag = redisUtils.get(PREVIEW_ENABLED_REDIS_KEY);
+        String activeCode = redisUtils.get(PREVIEW_CODE_REDIS_KEY);
+        boolean isEnabled = enabledFlag == null || !"false".equalsIgnoreCase(enabledFlag);
+        String code = StringUtils.hasText(activeCode) ? activeCode : defaultPreviewCode;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("enabled", isEnabled);
+        data.put("code", code);
+        return Result.success(data);
+    }
+
+    /**
+     * 重置或开关预览链接（超管/权限管理专用）
+     * POST /api/auth/preview-link/reset
+     */
+    @RequirePermission("system:permission")
+    @PostMapping("/preview-link/reset")
+    public Result<Map<String, Object>> updatePreviewLinkConfig(@RequestBody(required = false) Map<String, Object> body) {
+        String action = body != null && body.get("action") != null ? String.valueOf(body.get("action")) : "reset";
+        if ("toggle".equalsIgnoreCase(action) && body != null && body.get("enabled") != null) {
+            boolean enabled = Boolean.parseBoolean(String.valueOf(body.get("enabled")));
+            redisUtils.set(PREVIEW_ENABLED_REDIS_KEY, String.valueOf(enabled));
+        } else {
+            String newCode = "nx_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+            redisUtils.set(PREVIEW_CODE_REDIS_KEY, newCode);
+            redisUtils.set(PREVIEW_ENABLED_REDIS_KEY, "true");
+        }
+        return getPreviewLinkConfig();
     }
 
     /**

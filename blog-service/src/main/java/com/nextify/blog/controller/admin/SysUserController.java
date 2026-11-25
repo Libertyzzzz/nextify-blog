@@ -27,7 +27,18 @@ public class SysUserController {
 
     @GetMapping("/info")
     public Result<SysUser> getUserInfo() {
-        SysUser user = sysUserService.findByUserId(UserContextHolder.getUserId());
+        Long userId = UserContextHolder.getUserId();
+        if (userId != null && userId == -999L) {
+            SysUser demoUser = new SysUser();
+            demoUser.setId(userId);
+            demoUser.setUsername("viewer");
+            demoUser.setNickname("只读预览账号");
+            demoUser.setEmail("viewer@nextify.cn");
+            demoUser.setMotto("只读预览权限 · 全模块可见");
+            demoUser.setStatus(1);
+            return Result.success(demoUser);
+        }
+        SysUser user = sysUserService.findByUserId(userId);
         if (user == null) {
             return Result.fail("用户不存在");
         }

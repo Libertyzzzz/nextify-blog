@@ -1,6 +1,7 @@
 package com.nextify.blog.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.nextify.blog.dto.PermissionInfo;
 import com.nextify.blog.dto.UserPermissionInfo;
 import com.nextify.blog.entity.SysRole;
 
@@ -80,4 +81,10 @@ public interface RoleService {
      * 获取用户权限信息 (包含角色和权限)
      */
     UserPermissionInfo getUserPermissionInfo(Long userId);
+
+    /**
+     * 获取当前角色的权限信息
+     */
+
+    List<PermissionInfo> getRolePermissionsByRole(Long roleId);
 }

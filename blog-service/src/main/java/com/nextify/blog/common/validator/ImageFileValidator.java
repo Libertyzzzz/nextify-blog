@@ -15,7 +15,7 @@ import java.io.InputStream;
 @Component
 public class ImageFileValidator implements FileValidator {
     private static final java.util.Set<String> ALLOWED_CONTENT_TYPES = java.util.Set.of(
-        "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"
+        "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/svg+xml"
     );
 
     private static final String[] ALLOWED_MAGIC_NUMBERS = {
@@ -38,6 +38,11 @@ public class ImageFileValidator implements FileValidator {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
             return ValidationResult.failure(UploadErrorEnum.INVALID_FILE_TYPE.getMessage());
+        }
+
+        // 3. SVG 矢量图专项安全校验（XML 结构 + 防 XSS 脚本注入）
+        if ("image/svg+xml".equalsIgnoreCase(contentType)) {
+            return validateSvg(file);
         }
 
         String magicNumber = getFileMagicNumber(file);
@@ -106,6 +111,25 @@ public class ImageFileValidator implements FileValidator {
 
 
 
+
+    private ValidationResult validateSvg(MultipartFile file) {
+        try {
+            String raw = new String(file.getBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            String lower = raw.toLowerCase(java.util.Locale.ROOT);
+            if (!lower.contains("<svg")) {
+                return ValidationResult.failure(UploadErrorEnum.INVALID_PARAMETER.getMessage());
+            }
+            if (lower.contains("<script")
+                    || lower.contains("javascript:")
+                    || lower.contains("<foreignobject")
+                    || lower.matches("(?s).*\\bon(load|error|click|mouseover|focus|animationstart)\\s*=.*")) {
+                return ValidationResult.failure("SVG 包含不安全脚本内容，已拒绝上传");
+            }
+            return ValidationResult.success();
+        } catch (IOException e) {
+            return ValidationResult.failure(UploadErrorEnum.VALIDATION_FAILURE.getMessage());
+        }
+    }
 
     @Override
     public String getSupportedType() {

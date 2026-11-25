@@ -261,6 +261,7 @@ public class ImageServiceImpl extends ServiceImpl<BlogImageMapper, BlogImage> im
             case "image/png" -> "png";
             case "image/webp" -> "webp";
             case "image/gif" -> "gif";
+            case "image/svg+xml" -> "svg";
             default -> "jpg";
         };
     }

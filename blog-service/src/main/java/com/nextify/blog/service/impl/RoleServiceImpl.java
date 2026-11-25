@@ -2,12 +2,14 @@ package com.nextify.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.nextify.blog.dto.PermissionInfo;
 import com.nextify.blog.dto.UserPermissionInfo;
 import com.nextify.blog.entity.*;
 import com.nextify.blog.mapper.*;
 import com.nextify.blog.service.PermissionService;
 import com.nextify.blog.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -190,4 +192,24 @@ public class RoleServiceImpl implements RoleService {
     public UserPermissionInfo getUserPermissionInfo(Long userId) {
         return permissionService.getUserPermissionInfo(userId);
     }
+
+    @Override
+    public List<PermissionInfo> getRolePermissionsByRole(Long roleId) {
+        List<Long> ids = getRolePermissionIds(roleId);
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(SysPermission::getId, ids);
+        List<SysPermission> res = permissionMapper.selectList(wrapper);
+        if (res == null || res.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return res.stream().map(item -> {
+            PermissionInfo curr = new PermissionInfo();
+            BeanUtils.copyProperties(item, curr);
+            return curr;
+        }).toList();
+    }
+
 }

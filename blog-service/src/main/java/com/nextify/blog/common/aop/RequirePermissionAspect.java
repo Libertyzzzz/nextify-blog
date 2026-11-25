@@ -13,6 +13,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -44,6 +46,16 @@ public class RequirePermissionAspect {
         Long userId = UserContextHolder.getUserId();
         if (userId == null) {
             throw new BusinessException(ResultCode.UNAUTHORIZED);
+        }
+
+        // 只读预览链接账号 (-999L)：允许所有 GET 查看接口，拦截写操作
+        if (userId == -999L) {
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            String methodName = attrs != null ? attrs.getRequest().getMethod() : "";
+            if ("GET".equalsIgnoreCase(methodName)) {
+                return joinPoint.proceed();
+            }
+            throw new BusinessException(403, "当前为只读预览权限，不支持修改或删除数据");
         }
 
         // 获取用户权限信息

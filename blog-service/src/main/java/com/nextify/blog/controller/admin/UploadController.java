@@ -35,7 +35,7 @@ import java.util.*;
 public class UploadController {
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"
+            "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/svg+xml"
     );
 
     // 文件魔数白名单（十六进制）
@@ -99,6 +99,7 @@ public class UploadController {
             case "image/png" -> "png";
             case "image/webp" -> "webp";
             case "image/gif" -> "gif";
+            case "image/svg+xml" -> "svg";
             default -> "jpg";
         };
     }
