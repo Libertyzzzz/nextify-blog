@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -20,6 +20,8 @@ public class SitemapController {
     @Value("${nextify.site-url:https://nextify.cn}")
     private String siteUrl;
 
+    private static final  DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     @PublicApi
     @GetMapping(value = "/sitemap.xml", produces = "application/xml;charset=utf-8")
     public String getSitemap() {
@@ -27,7 +29,7 @@ public class SitemapController {
         // Only fetch published articles (status = 1)
         List<BlogArticle> articles = articleService.lambdaQuery().eq(BlogArticle::getStatus, 1).list();
         StringBuilder xml = new StringBuilder();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
 
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
@@ -49,9 +51,9 @@ public class SitemapController {
             xml.append("  <url>\n");
             xml.append("    <loc>").append(baseUrl).append("/post/").append(article.getId()).append("</loc>\n");
             if (article.getUpdateTime() != null) {
-                xml.append("    <lastmod>").append(sdf.format(article.getUpdateTime())).append("</lastmod>\n");
+                xml.append("    <lastmod>").append(article.getUpdateTime().format(DATE_TIME_FORMATTER)).append("</lastmod>\n");
             } else if (article.getCreateTime() != null) {
-                xml.append("    <lastmod>").append(sdf.format(article.getCreateTime())).append("</lastmod>\n");
+                xml.append("    <lastmod>").append(article.getCreateTime().format(DATE_TIME_FORMATTER)).append("</lastmod>\n");
             }
             xml.append("    <priority>0.8</priority>\n");
             xml.append("  </url>\n");
